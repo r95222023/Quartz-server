@@ -1,0 +1,62 @@
+{
+  "author": {
+    "name": "SBOS"
+  },
+  "email": "r95222023@gmail.com",
+  "name": "quartz-server",
+  "description": "quartz server",
+  "version": "1.0.1",
+  "main": "./lib/quartz-server.js",
+  "browser": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "monitor": "nodemon app.js",
+    "deploy": "gcloud preview app deploy app.yaml",
+    "lint": "jshint --exclude-path=.gitignore ."
+  },
+  "keywords": [
+    "Firebase",
+    "Quartz",
+    "angular",
+    "real-time",
+    "material design"
+  ],
+  "dependencies": {
+    "body-parser":"~1.14.1",
+    "exec-php":"~0.0.3",
+    "express":"~4.0.0",
+    "firebase": "~2.3.1",
+    "lodash":"~3.10.1",
+    "q":"~1.4.1",
+    "require-dir":"0.3.0"
+  },
+  "repository": {
+    "type": "none",
+    "url": ""
+  },
+  "_id": "obsidain@0.0.1",
+  "_shasum": "",
+  "_from": "",
+  "_npmVersion": "2.7.5",
+  "_nodeVersion": "0.10.38",
+  "_npmUser": {
+    "name": "",
+    "email": ""
+  },
+  "maintainers": [
+    {
+      "name": "boss",
+      "email": "r95222023@gmail.com"
+    }
+  ],
+  "dist": {
+    "shasum": "",
+    "tarball": ""
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "directories": {},
+  "_resolved": ""
+}
