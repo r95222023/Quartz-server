@@ -29,7 +29,8 @@
     "firebase": "~2.3.1",
     "lodash":"~3.10.1",
     "q":"~1.4.1",
-    "require-dir":"0.3.0"
+    "require-dir":"0.3.0",
+    "firebase-queue":"~1.2.x"
   },
   "repository": {
     "type": "none",

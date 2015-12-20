@@ -8,9 +8,9 @@ var FBURL = 'https://quartz.firebaseio.com',
     SERVER_PATH = '/servers';
 
 //SERVER_INFO
-var SERVER_ID = 'GCE-instance-2';
 var SERVER_INFO ={
-    description:'pc at home'
+    description:'pc at home',
+    isTemporary:true
 };
 
 //EMAIL
@@ -44,7 +44,6 @@ module.exports = {
     SERVER_PATH: SERVER_PATH,
     //SERVER_INFO
     SERVER_INFO:SERVER_INFO,
-    SERVER_ID: SERVER_ID,
     //EMAIL
     //ALLPAY
     ALLPAY: ALLPAY
