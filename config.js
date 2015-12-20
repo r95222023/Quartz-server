@@ -10,7 +10,7 @@ var FBURL = 'https://quartz.firebaseio.com',
 //SERVER_INFO
 var SERVER_INFO ={
     description:'pc at home',
-    isTemporary:true
+    isTemporary: false
 };
 
 //EMAIL

@@ -5,7 +5,8 @@ var app = require('./lib/expressApp'),
     watch_list = require('require-dir')('./watch_list'),
     routes = require('require-dir')('./routes'),
     config = require('./config'),
-    serverGroup = require('./lib/servers')(config);
+    serverGroup = require('./lib/servers')(config),
+    exec = require('child_process').exec;
 
 
 auth()
@@ -23,6 +24,13 @@ auth()
         //}, function(error){
         //    console.log(error);
         //})
+
+        exec("/opt/elasticsearch-2.1.1/bin/elasticsearch", function (error, stdout, stderr) {
+            console.log(stdout,stderr);
+            if (error !== null) {
+                console.log('exec error: ' + error);
+            }
+        });
 
 
         ///////////////////
