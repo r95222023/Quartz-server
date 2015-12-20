@@ -10,7 +10,7 @@ var FBURL = 'https://quartz.firebaseio.com',
 //SERVER_INFO
 var SERVER_ID = 'GCE-instance-2';
 var SERVER_INFO ={
-    location:'home'
+    description:'pc at home'
 };
 
 //EMAIL
