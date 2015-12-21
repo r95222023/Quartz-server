@@ -2,7 +2,7 @@ var app = require('./lib/expressApp'),
     auth = require('./lib/auth'),
 //execPhp = require('./lib/php/execPhp'),
     watch = require('./lib/watch'),
-    watch_list = require('require-dir')('./watch_list'),
+    //watch_list = require('require-dir')('./watch_list'),
     routes = require('require-dir')('./routes'),
     config = require('./config'),
     serverGroup = require('./lib/servers')(config),
@@ -13,11 +13,13 @@ auth()
     .then(serverGroup.getReadyPromise)
     .then(function (serverId) {
         console.log('start server: '+serverId);
-        var watchList = [];
-        for (var key in watch_list) {
-            watchList.push(watch_list[key])
-        }
+        //var watchList = [];
+        //for (var key in watch_list) {
+        //    watchList.push(watch_list[key])
+        //}
         //watch(watchList);
+
+
         //execPhp('test.php').then(function(php, outprint){
         //    console.log(outprint);
         //    console.log(php);
@@ -34,19 +36,19 @@ auth()
         require('require-dir')('./tasks');
         ///////////////////
 
-        var elasticsearch = require('elasticsearch');
-        var client = new elasticsearch.Client({
-            host: 'localhost:9200',
-            log: 'trace'
-        });
-        var PathMonitor = require('./lib/elasticsearch');
-        PathMonitor.process(client, config.FBURL, [
-            {
-                path:  "orders",
-                index: "quartz",
-                type:  "order"
-            }
-        ], 'orders');
+        //var elasticsearch = require('elasticsearch');
+        //var client = new elasticsearch.Client({
+        //    host: 'localhost:9200',
+        //    log: 'trace'
+        //});
+        //var PathMonitor = require('./lib/esPathMonitor');
+        //PathMonitor.process(client, config.FBURL, [
+        //    {
+        //        path:  "orders",
+        //        index: "quartz",
+        //        type:  "order"
+        //    }
+        //], 'orders');
 
         ///////////////////
         var port = /*process.env.PORT || 8080*/ 3000;

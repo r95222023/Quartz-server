@@ -1,5 +1,5 @@
-var config = require('../config'),
-    allpay = require('../lib/allpay');
+var config = require('../../config'),
+    allpay = require('../../lib/allpay');
 
 function getTotalAmt(order) {
     for(var key in order.cart){
