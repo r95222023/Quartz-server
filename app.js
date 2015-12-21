@@ -39,7 +39,7 @@ auth()
             host: 'localhost:9200',
             log: 'trace'
         });
-        var PathMonitor = require('./lib/PathMonitor');
+        var PathMonitor = require('./lib/elasticsearch');
         PathMonitor.process(client, config.FBURL, [
             {
                 path:  "orders",
