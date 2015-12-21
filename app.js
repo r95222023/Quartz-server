@@ -40,7 +40,7 @@ auth()
             log: 'trace'
         });
         var PathMonitor = require('./lib/PathMonitor');
-        PathMonitor.process(elasticsearch, config.FBURL, [
+        PathMonitor.process(client, config.FBURL, [
             {
                 path:  "orders",
                 index: "quartz",
