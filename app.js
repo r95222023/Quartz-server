@@ -33,7 +33,7 @@ auth()
         //        console.log('exec error: ' + error);
         //    }
         //});
-        require('require-dir')('./tasks');
+        var tasks = require('require-dir')('./tasks');
         ///////////////////
 
         //var elasticsearch = require('elasticsearch');
@@ -49,7 +49,7 @@ auth()
         //        type:  "order"
         //    }
         //], 'orders');
-
+        tasks['elasticsearch-index-paths'](config);
         ///////////////////
         var port = /*process.env.PORT || 8080*/ 3000;
         //// use sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3000
