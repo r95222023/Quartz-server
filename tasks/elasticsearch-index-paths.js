@@ -2,8 +2,8 @@ var elasticsearch = require('elasticsearch'),
     servers = require('../lib/servers');
 
 var client = new elasticsearch.Client({
-    host: 'localhost:9200'/*,
-    log: 'trace'*/
+    host: 'localhost:9200',
+    log: 'trace'
 });
 
 module.exports = function (config) {
