@@ -3,6 +3,7 @@ var APP_NAME = 'Quartz';
 
 //FIREBASE
 var FBURL = 'https://quartz.firebaseio.com',
+    FBNAME = 'quartz',
     FIREBASE_SECRETE = 'XGasvxEnG2Dr9EmaR07aLmYisFMBqPJQSgyUam2I',
     ORDER_ROOT_PATH = '/orders',
     SERVER_PATH = '/servers';

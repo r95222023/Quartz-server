@@ -32,7 +32,8 @@
     "require-dir":"0.3.0",
     "rsvp": "3.x",
     "node-uuid": "1.4.x",
-    "winston": "1.x"
+    "winston": "1.x",
+    "elasticsearch":"10.0.1"
   },
   "repository": {
     "type": "none",

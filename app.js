@@ -32,6 +32,21 @@ auth()
         //    }
         //});
         require('require-dir')('./tasks');
+        ///////////////////
+
+        var elasticsearch = require('elasticsearch');
+        var client = new elasticsearch.Client({
+            host: 'localhost:9200',
+            log: 'trace'
+        });
+        var PathMonitor = require('./lib/PathMonitor');
+        PathMonitor.process(elasticsearch, config.FBURL, [
+            {
+                path:  "orders",
+                index: "quartz",
+                type:  "order"
+            }
+        ], 'orders');
 
         ///////////////////
         var port = /*process.env.PORT || 8080*/ 3000;
