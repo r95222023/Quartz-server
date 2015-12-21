@@ -17,7 +17,7 @@ auth()
         for (var key in watch_list) {
             watchList.push(watch_list[key])
         }
-        watch(watchList);
+        //watch(watchList);
         //execPhp('test.php').then(function(php, outprint){
         //    console.log(outprint);
         //    console.log(php);
@@ -25,13 +25,13 @@ auth()
         //    console.log(error);
         //})
 
-        exec("/opt/elasticsearch-2.1.1/bin/elasticsearch", function (error, stdout, stderr) {
-            console.log(stdout,stderr);
-            if (error !== null) {
-                console.log('exec error: ' + error);
-            }
-        });
-
+        //exec("/opt/elasticsearch-2.1.1/bin/elasticsearch", function (error, stdout, stderr) {
+        //    console.log(stdout,stderr);
+        //    if (error !== null) {
+        //        console.log('exec error: ' + error);
+        //    }
+        //});
+        require('require-dir')('./tasks');
 
         ///////////////////
         var port = /*process.env.PORT || 8080*/ 3000;

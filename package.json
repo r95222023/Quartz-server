@@ -30,7 +30,9 @@
     "lodash":"~3.10.1",
     "q":"~1.4.1",
     "require-dir":"0.3.0",
-    "firebase-queue":"~1.2.x"
+    "rsvp": "3.x",
+    "node-uuid": "1.4.x",
+    "winston": "1.x"
   },
   "repository": {
     "type": "none",
