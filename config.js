@@ -14,7 +14,8 @@ var SERVER_INFO ={
     isTemporary: false,
     serverMonitorRefUrl:'https://quartz-console.firebaseio.com/server_monitor',
     monitors: {
-        "cpu": {interval:60000, samples:50}
+        "cpu": {interval:15000, samples:50},
+        "memory": {interval:60000, samples:50}
     }
 };
 
