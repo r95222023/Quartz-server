@@ -12,7 +12,10 @@ var FBURL = 'https://quartz.firebaseio.com',         //必要
 var SERVER_INFO ={
     description:'pc at home',
     isTemporary: false,
-    serverMonitorRefUrl:'https://quartz-console.firebaseio.com/server_monitor'
+    serverMonitorRefUrl:'https://quartz-console.firebaseio.com/server_monitor',
+    monitors: {
+        "cpu": {interval:60000, samples:50}
+    }
 };
 
 //EMAIL
