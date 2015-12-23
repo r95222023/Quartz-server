@@ -1,6 +1,7 @@
 var config = require('../config'),
     allpay = require('../lib/allpay'),
-    firebaseUtil = require('../lib/firebaseUtil');
+    firebaseUtil = require('../lib/firebaseUtil'),
+    resolver = require('../lib/resolver');
 
 function getTotalAmt(order) {
     for(var key in order.cart){
@@ -22,8 +23,9 @@ var queue = firebaseUtil.queue(queRef, {tasksRefPath:'orders'}, function(data, p
     }
 
     updateData['orders/'+tradeID+'/payment/allpay/CheckMacValue'] = allpay.genCheckMacValue(data.payment.allpay);
+    resolver.set('index_changed', 'quartz/order/'+tradeId, resolve);
 
     queRef.update(updateData, function () {
-        resolve()
+        //resolve()
     });
 });
