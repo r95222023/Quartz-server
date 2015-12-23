@@ -2,7 +2,7 @@
 var APP_NAME = 'Quartz';
 
 //FIREBASE
-var FBURL = 'https://quartz.firebaseio.com',
+var FBURL = 'https://quartz.firebaseio.com',         //必要
     FBNAME = 'quartz',
     FIREBASE_SECRETE = 'XGasvxEnG2Dr9EmaR07aLmYisFMBqPJQSgyUam2I',
     ORDER_ROOT_PATH = '/orders',
@@ -11,7 +11,8 @@ var FBURL = 'https://quartz.firebaseio.com',
 //SERVER_INFO
 var SERVER_INFO ={
     description:'pc at home',
-    isTemporary: false
+    isTemporary: false,
+    serverMonitorRefUrl:'https://quartz-console.firebaseio.com/server_monitor'
 };
 
 //EMAIL

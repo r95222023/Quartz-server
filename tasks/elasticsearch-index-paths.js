@@ -2,8 +2,8 @@ var elasticsearch = require('elasticsearch'),
     servers = require('../lib/servers');
 
 var client = new elasticsearch.Client({
-    host: 'localhost:9200',
-    log: 'trace'
+    host: 'localhost:9200'/*,
+    log: 'trace'*/
 });
 
 module.exports = function (config) {
@@ -12,17 +12,14 @@ module.exports = function (config) {
         {
             path: "orders",
             index: "quartz",
-            type: "order",
-            hostname:servers.serverId
+            type: "order"
         },
         {
             path: "users",
             index: "quartz",
-            type: "user",
-            hostname:servers.serverId
-
+            type: "user"
         }
-    ], 'orders');
+    ]);
 
 };
 
