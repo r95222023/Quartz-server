@@ -23,7 +23,7 @@ var queue = firebaseUtil.queue(queRef, {tasksRefPath:'orders'}, function(data, p
     }
 
     updateData['orders/'+tradeID+'/payment/allpay/CheckMacValue'] = allpay.genCheckMacValue(data.payment.allpay);
-    resolver.set('index_changed', 'quartz/order/'+tradeId, resolve);
+    resolver.set('index_changed', 'quartz/order/'+tradeID, resolve);
 
     queRef.update(updateData, function () {
         //resolve()
