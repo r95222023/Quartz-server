@@ -53,4 +53,4 @@ module.exports = {
     //EMAIL
     //ALLPAY
     ALLPAY: ALLPAY
-};
+};4
