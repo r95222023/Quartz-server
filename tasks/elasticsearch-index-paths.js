@@ -1,26 +1,40 @@
 var elasticsearch = require('elasticsearch'),
-    servers = require('../lib/servers');
+    servers = require('../lib/servers'),
+    net = require('net'),
+    q = require('q');
 
-var client = new elasticsearch.Client({
-    host: 'localhost:9200'/*,
-    log: 'trace'*/
-});
+var def = q.defer(),
+    retry = 0;
+
+function init() {
+    net.connect(9200, 'localhost', function() {
+    }).on('connect', function () {
+        console.log('connect');
+        var client = new elasticsearch.Client({
+            host: 'localhost:9200'/*,
+             log: 'trace'*/
+        });
+        def.resolve(client);
+    }).on('error', function (err) {
+        setTimeout(init, 5000);
+        retry++;
+        if(retry>3) def.reject('Elasticsearch is offline');
+    }).on('close', function () {
+        console.log('Elasticsearch is offline');
+    });
+}
+
+init();
+
 
 module.exports = function (config) {
-    var PathMonitor = require('../lib/esPathMonitor');
-    PathMonitor.process(client, config.FBURL, [
-        {
-            path: "orders",
-            index: "quartz",
-            type: "order"
-        },
-        {
-            path: "users",
-            index: "quartz",
-            type: "user"
-        }
-    ]);
-
+    def.promise.then(function (client) {
+        var PathMonitor = require('../lib/esPathMonitor');
+        PathMonitor.process(client, config.FBURL, false, 'config/server/index');
+    }, function (error) {
+        console.log(error)
+    });
 };
+
 
 
