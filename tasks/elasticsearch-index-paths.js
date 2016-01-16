@@ -1,5 +1,4 @@
 var elasticsearch = require('elasticsearch'),
-    servers = require('../lib/servers'),
     http = require('http'),
     q = require('q');
 
@@ -39,12 +38,24 @@ checkConnection();
 
 
 module.exports = function (config) {
+    var escDefer = q.defer();
     def.promise.then(function (client) {
         var PathMonitor = require('../lib/esPathMonitor');
+        //for static path, use the following
+        // PathMonitor.process(client, config.FBURL, [
+        //    {
+        //        path:  "orders",
+        //        index: "quartz",
+        //        type:  "order"
+        //    }
+        //]);
         PathMonitor.process(client, config.FBURL, false, 'config/server/index');
+        escDefer.resolve(client, config);
     }, function (error) {
+        escDefer.reject(error);
         console.log(error);
     });
+    return escDefer.promise;
 };
 
 

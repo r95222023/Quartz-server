@@ -4,43 +4,21 @@ var config = require('../config'),
     resolver = require('../lib/resolver'),
     orderValidator = require('../lib/orderValidator');
 
-function getTotalAmt(order) {
-    for(var key in order.cart){
-        //
-    }
-}
-
-
 var rootRef = firebaseUtil.ref('https://quartz.firebaseio.com/');
 var queue = firebaseUtil.queue(rootRef, {tasksRefPath:'orders'}, function(data, progress, resolve, reject){
     if(data.cart&&!orderValidator(data).isValid()) reject('invalid totalAmount');
 
     switch(data.payment.type){
         case 'stripe':
-            data['_owner']=data['_state_changed']=data['_progress']=null; data['_state'] = 'validated';
+            data['_owner']=data['_state_changed']=data['_progress']=null; data['_state'] = 'verified';
             if(data.id) rootRef.child('orders/'+data.id).update(data);
             resolve();
             break;
         case 'allpay':
-            var updateData = {};
-
-            var indicator =['_owner','_state','_state_changed','_progress'],
-                indicatorValue = [null,'stored',null,null];
-            for (var i = 0; i < indicator.length; i++) {
-                updateData['orders/'+data.id+'/'+indicator[i]]=indicatorValue[i]
-            }
-            updateData['orders/'+data.id+'/payment/allpay/CheckMacValue'] = allpay.genCheckMacValue(data.payment.allpay);
-
-            rootRef.update(updateData, function () {
-                resolve()
-            });
-
-            //data['_owner']=data['_state_changed']=data['_progress']=null; data['_state'] = 'validated';
-            //data.payment.allpay.CheckMacValue = allpay.genCheckMacValue(data.payment.allpay);
-            //rootRef.child('orders/'+data.id).update(data, function () {
-            //    console.log(data);
-            //});
-
+            data['_owner']=data['_state_changed']=data['_progress']=null; data['_state'] = 'verified';
+            data.payment.allpay.CheckMacValue = allpay.genCheckMacValue(data.payment.allpay);
+            if(data.id) rootRef.child('orders/'+data.id).update(data);
+            resolve();
             break;
     }
 });
