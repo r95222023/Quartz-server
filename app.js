@@ -25,7 +25,9 @@ auth()
 
         tasks['elasticsearch-index-paths'](config)
             .then(function (esc, conf) {
-                tasks['search-queue'].init(esc, config.FBURL, 'query/request', 10000)
+                tasks['search-queue'].init(esc, config.FBURL, 'query',{
+                    cleanupInterval:5000
+                })
             });
         ///////////////////
         var port = /*process.env.PORT || 8080*/ 3000;

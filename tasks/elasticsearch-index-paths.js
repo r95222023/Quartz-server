@@ -2,6 +2,7 @@ var elasticsearch = require('elasticsearch'),
     http = require('http'),
     q = require('q');
 
+
 var def = q.defer(),
     retry = 0;
 
@@ -12,12 +13,12 @@ var options = {
     path: '/'
 };
 
-function checkConnection(){
-    http.get(options, function(res) {
+function checkConnection() {
+    http.get(options, function (res) {
         initEs();
     }).on('error', function (error) {
         retry++;
-        if(retry>3) {
+        if (retry > 3) {
             def.reject('Elasticsearch is offline');
         } else {
             setTimeout(checkConnection, 10000)
@@ -25,12 +26,15 @@ function checkConnection(){
     });
 }
 
+const EventEmitter = require('events');
 
-function initEs(){
+function initEs() {
     var client = new elasticsearch.Client({
         host: 'localhost:9200'/*,
          log: 'trace'*/
     });
+
+    client.emitter = new EventEmitter();
     def.resolve(client);
 }
 

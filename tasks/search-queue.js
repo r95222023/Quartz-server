@@ -1,14 +1,19 @@
 var config = require('../config'),
-    firebaseUtil = require('../lib/firebaseUtil');
+    firebaseUtil = require('../lib/firebaseUtil'),
+    util = require('../lib/util');
 
 
-function SearchQueue(esc, rootRef, tasksRefPath, cleanupInterval) {
+function SearchQueue(esc, rootRefUrl, queryRefPath, options) {
+    options = options || {};
     this.esc = esc;
-    this.rootRef = rootRef || config.FBURL;
-    this.tasksRefPath = tasksRefPath;
-    this.cleanupInterval = cleanupInterval;
+    this.rootRef = firebaseUtil.ref(rootRefUrl) || firebaseUtil.ref(config.FBURL);
+    this.tasksRefPath = queryRefPath + '/request';
+    this.responseRefPath = queryRefPath+'/response';
+    this.cleanupInterval = options.cleanupInterval || 10000;
+    this.cacheRef = typeof options.cacheRefUrl === 'string' ? firebaseUtil.ref(options.cacheRefUrl) : this.rootRef.child(queryRefPath + '/cache');
 
     this._process();
+    this._syncCache();
 }
 
 
@@ -27,10 +32,9 @@ SearchQueue.prototype = {
             if (self._asertValidSearch(data)) {
                 var taskRef = self.rootRef.child(self.tasksRefPath),
                     id = data['_key'],
-                    requestRef = taskRef.child('request/' + id),
-                    responseRef = data.responseUrl ? firebaseUtil.ref(data.responseUrl) : taskRef.child('response/' + id);
+                    requestRef = taskRef.child( id),
+                    responseRef = data.responseUrl ? firebaseUtil.ref(data.responseUrl) : self.rootRef.child(self.responseRefPath).child(id);
                 self.esc.search(data, onSearchComplete);
-                console.log(data.responseUrl)
             }
             function onSearchComplete(error, response) {
                 if (error) {
@@ -47,8 +51,13 @@ SearchQueue.prototype = {
                     responseRef
                         .update(_response, function (err) {
                             if (err) reject(err);
+                            if(!data.cache) responseRef.onDisconnect().remove();
                             requestRef.onDisconnect().remove();
                             setTimeout(function () {
+                                if(!data.cache) {
+                                    responseRef.onDisconnect().cancel();
+                                    responseRef.remove();
+                                }
                                 requestRef.onDisconnect().cancel();
                                 resolve();
                             }, self.cleanupInterval)
@@ -57,7 +66,40 @@ SearchQueue.prototype = {
             }
         });
     },
+    _syncCache: function () {
+        var self = this;
 
+        function onSearchComplete(responseRef, emitter) {
+            return function (error, response) {
+                if (error) {
+                    emitter.emit('error', error);
+                } else {
+                    var result = response.hits;
+                    result.usage = {
+                        times: 1,
+                        last: firebaseUtil.ServerValue.TIMESTAMP
+                    };
+                    responseRef
+                        .set(result, function (err) {
+                            if (err) emitter.emit('error', error);
+                        });
+                }
+            }
+        }
+
+        if (this.esc.emitter) {
+            function sync() {
+                self.cacheRef.once('value', function (snap) {
+                    snap.forEach(function (childSnap) {
+                        var responseRef = childSnap.child('result').ref();
+                        //TODO: 做一個FUNC確認這個快取是否需要留下來
+                        self.esc.search(childSnap.child('request').val(), onSearchComplete(responseRef, self.esc.emitter))
+                    })
+                })
+            }
+            this.esc.emitter.on('index_changed', util.debounce(sync, 10000));
+        }
+    },
     _isJson: function (str) {
         try {
             JSON.parse(str);
@@ -68,7 +110,6 @@ SearchQueue.prototype = {
     }
 };
 
-exports.init = function (esc, fbUrl, tasksRefPath, cleanupInterval) {
-    var rootRef = firebaseUtil.ref(fbUrl);
-    new SearchQueue(esc, rootRef, tasksRefPath, cleanupInterval);
+exports.init = function (esc, fbUrl, tasksRefPath, options) {
+    new SearchQueue(esc, fbUrl, tasksRefPath, options);
 };
