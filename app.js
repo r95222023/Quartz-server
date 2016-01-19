@@ -27,7 +27,8 @@ auth()
             .then(function (esc, conf) {
                 tasks['search-queue'].init(esc, config.FBURL, 'query',{
                     cleanupInterval:5000
-                })
+                });
+                //tasks['state_change_order_status'](config.FBURL, 'queue', {})
             });
         ///////////////////
         var port = /*process.env.PORT || 8080*/ 3000;

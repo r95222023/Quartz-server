@@ -1,6 +1,7 @@
 var config = require('../config'),
     firebaseUtil = require('../lib/firebaseUtil'),
-    util = require('../lib/util');
+    util = require('../lib/util'),
+    _ = require('lodash');
 
 
 function SearchQueue(esc, rootRefUrl, queryRefPath, options) {
@@ -8,7 +9,7 @@ function SearchQueue(esc, rootRefUrl, queryRefPath, options) {
     this.esc = esc;
     this.rootRef = firebaseUtil.ref(rootRefUrl) || firebaseUtil.ref(config.FBURL);
     this.tasksRefPath = queryRefPath + '/request';
-    this.responseRefPath = queryRefPath+'/response';
+    this.responseRefPath = queryRefPath + '/response';
     this.cleanupInterval = options.cleanupInterval || 10000;
     this.cacheRef = typeof options.cacheRefUrl === 'string' ? firebaseUtil.ref(options.cacheRefUrl) : this.rootRef.child(queryRefPath + '/cache');
 
@@ -20,9 +21,9 @@ function SearchQueue(esc, rootRefUrl, queryRefPath, options) {
 SearchQueue.prototype = {
     _asertValidSearch: function (props) {
         var res = true;
-        if (typeof(props) !== 'object' || !props.index || !props.body) {
+        if (typeof(props) !== 'object' || !props.index || !props.type) {
             res = false;
-            throw 'search request must be a valid object with index and body'
+            throw 'search request must be a valid object with index and type'
         }
         return res;
     },
@@ -30,11 +31,23 @@ SearchQueue.prototype = {
         var self = this;
         var queue = firebaseUtil.queue(this.rootRef, {tasksRefPath: this.tasksRefPath}, function (data, progress, resolve, reject) {
             if (self._asertValidSearch(data)) {
+
                 var taskRef = self.rootRef.child(self.tasksRefPath),
                     id = data['_key'],
-                    requestRef = taskRef.child( id),
+                    requestRef = taskRef.child(id),
                     responseRef = data.responseUrl ? firebaseUtil.ref(data.responseUrl) : self.rootRef.child(self.responseRefPath).child(id);
-                self.esc.search(data, onSearchComplete);
+                data.body = data.body || {
+                        "query": {
+                            "match_all": {}
+                        }
+                    };
+                var rectifiedData = self._rectifyData(data, {
+                    arrayLimit: data.size,
+                    keyFilter: function(key){
+                        return _.isString(key)? key.replace('_dot_', '.') : key
+                    }
+                });
+                self.esc.search(rectifiedData, onSearchComplete);
             }
             function onSearchComplete(error, response) {
                 if (error) {
@@ -51,10 +64,10 @@ SearchQueue.prototype = {
                     responseRef
                         .update(_response, function (err) {
                             if (err) reject(err);
-                            if(!data.cache) responseRef.onDisconnect().remove();
+                            if (!data.cache) responseRef.onDisconnect().remove();
                             requestRef.onDisconnect().remove();
                             setTimeout(function () {
-                                if(!data.cache) {
+                                if (!data.cache) {
                                     responseRef.onDisconnect().cancel();
                                     responseRef.remove();
                                 }
@@ -88,8 +101,8 @@ SearchQueue.prototype = {
         }
 
         if (this.esc.emitter) {
-            function sync() {
-                self.cacheRef.once('value', function (snap) {
+            function sync(opt) {
+                self.cacheRef.orderByChild('request/type').equalTo(opt.type).once('value', function (snap) {
                     snap.forEach(function (childSnap) {
                         var responseRef = childSnap.child('result').ref();
                         //TODO: 做一個FUNC確認這個快取是否需要留下來
@@ -97,6 +110,7 @@ SearchQueue.prototype = {
                     })
                 })
             }
+
             this.esc.emitter.on('index_changed', util.debounce(sync, 10000));
         }
     },
@@ -107,6 +121,44 @@ SearchQueue.prototype = {
             return false;
         }
         return true;
+    },
+    _rectifyData: function (data, option) {
+        var _option = option || {},
+            arrayLimit = _option.arrayLimit || 100;
+
+        function toPosInt(key) {
+            var n = Number(key);
+            return !_.isNaN(n)&& n % 1 === 0&& n>-1? n: false;
+        }
+        function keyFilter(key){
+            if(_.isFunction(_option.keyFilter)){
+                return _option.keyFilter(key);
+            } else {
+                return key;
+            }
+        }
+
+        function iterate(data) {
+            var arr = [],
+                obj = {},
+                isArray = true;
+            _.forEach(data, function (value, key) {
+                var n = toPosInt(key);
+                if (n!==false&&n<arrayLimit) {
+                    arr[key] = _.isObject(value) ? iterate(value) : value;
+                } else {
+                    isArray = false;
+                    return false;
+                }
+            });
+            if (isArray === false) _.forEach(data, function (value, key) {
+                key = keyFilter(key);
+                obj[key] = _.isObject(value)? iterate(value): value;
+            });
+            return isArray ? arr : obj;
+        }
+
+        return iterate(data);
     }
 };
 
