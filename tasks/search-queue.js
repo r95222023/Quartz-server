@@ -128,7 +128,7 @@ SearchQueue.prototype = {
 
         function toPosInt(key) {
             var n = Number(key);
-            return !_.isNaN(n)&& n % 1 === 0&& n>-1? n: false;
+            return n % 1 === 0&& n>-1? n: false;
         }
         function keyFilter(key){
             if(_.isFunction(_option.keyFilter)){
