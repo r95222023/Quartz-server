@@ -1,55 +1,32 @@
 var app = require('./lib/expressApp'),
     auth = require('./lib/auth'),
-//execPhp = require('./lib/php/execPhp'),
     watch = require('./lib/watch'),
-    //watch_list = require('require-dir')('./watch_list'),
     routes = require('require-dir')('./routes'),
     config = require('./config'),
-    serverGroup = require('./lib/servers')(config),
-    exec = require('child_process').exec;
-
+    initEsc = require('./lib/esc'),
+    serverGroup = require('./lib/servers')(config);
 
 auth()
     .then(serverGroup.getReadyPromise)
     .then(function (serverId) {
-        console.log('start server: '+serverId);
-        //var watchList = [];
-        //for (var key in watch_list) {
-        //    watchList.push(watch_list[key])
-        //}
-        //watch(watchList);
+        console.log('start server: ' + serverId);
 
-
-        //execPhp('test.php').then(function(php, outprint){
-        //    console.log(outprint);
-        //    console.log(php);
-        //}, function(error){
-        //    console.log(error);
-        //})
-
-        //exec("/opt/elasticsearch-2.1.1/bin/elasticsearch", function (error, stdout, stderr) {
-        //    console.log(stdout,stderr);
-        //    if (error !== null) {
-        //        console.log('exec error: ' + error);
-        //    }
-        //});
-        var tasks = require('require-dir')('./tasks');
+        var tasks = require('require-dir')('./tasks'),
+            escPromise = initEsc({
+                port: 9200,
+                ip: "localhost",
+                retry: 5
+            });
         ///////////////////
 
-        //var elasticsearch = require('elasticsearch');
-        //var client = new elasticsearch.Client({
-        //    host: 'localhost:9200',
-        //    log: 'trace'
-        //});
-        //var PathMonitor = require('./lib/esPathMonitor');
-        //PathMonitor.process(client, config.FBURL, [
-        //    {
-        //        path:  "orders",
-        //        index: "quartz",
-        //        type:  "order"
-        //    }
-        //], 'orders');
-        tasks['elasticsearch-index-paths'](config);
+        escPromise.then(function (esc) {
+            tasks['index'](esc);
+            tasks['order-validations']();
+        });
+
+
+        // tasks['elasticsearch-index-paths'](config);
+
         ///////////////////
         var port = /*process.env.PORT || 8080*/ 3000;
         //// use sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3000

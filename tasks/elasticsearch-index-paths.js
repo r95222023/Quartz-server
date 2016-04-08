@@ -24,7 +24,7 @@ function init() {
     });
 }
 
-init();
+// init();
 
 
 module.exports = function (config) {
