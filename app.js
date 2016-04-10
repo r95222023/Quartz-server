@@ -21,7 +21,11 @@ auth()
 
         escPromise.then(function (esc) {
             tasks['index'](esc);
+            tasks['search'](esc);
+
             tasks['order-validations']();
+        }, function(err){
+            console.log(err);
         });
 
 
