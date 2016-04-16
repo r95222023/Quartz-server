@@ -5,52 +5,69 @@ var defaultConfig = require('../config'),
     orderService = require('../lib/orderService');
 
 
+function init(config) {
 
-function init(config){
-
-    var _config=config||{},
+    var _config = config || {},
         options = {
             'specId': 'order_validate',
-            'numWorkers': _config.numWorkers||10,
+            'numWorkers': _config.numWorkers || 10,
             'sanitize': false,
-            'suppressStack': _config.suppressStack||true
+            'suppressStack': _config.suppressStack || true
         },
-        rootRef = firebaseUtil.ref(_config.FBURL||defaultConfig.FBURL).child("queue");
+        rootRef = firebaseUtil.ref(_config.FBURL || defaultConfig.FBURL).child("queue");
     var queue = firebaseUtil.queue(rootRef, options, function (data, progress, resolve, reject) {
-        switch (data.payment.type) {
-            case 'stripe':
-                //var os =orderService(data, config)
-                //os.add(data)
-                // .then(os.charge)
-                // .then(resolve);
-                break;
-            case 'allpay':
-                var os =orderService(data);
-                if (os.isValid()) {
-                    var CheckMacValue = allpay.genCheckMacValue(data.payment.allpay),
+        var os = orderService(data);
+
+        if (!os.isValid()) {
+            reject("invalid data");
+            return;
+        }
+        
+        rootRef.root().child('sites/' + data.siteName + '/config/payment/' + data.payment.type).once('value', function (paymentParamSnap) {
+            var paymentParams = paymentParamSnap.val()||{},
+                publicParams = paymentParams.public||{},
+                privateParams = paymentParams.private||{};
+            switch (data.payment.type) {
+                case 'stripe':
+                    os.add(data)
+                        .then(os.charge)
+                        .then(resolve);
+                    break;
+                case 'allpay':
+                    
+                    var CheckMacValue = allpay({
+                            // debug: config.ALLPAY.DEBUG,
+                            merchantID: publicParams.MerchantID||'2000132',
+                            hashKey: privateParams.HashKey||'5294y06JbISpM5x9',
+                            hashIV: privateParams.HashIV||'v77hoKGq4kWxNNIS'
+                        }).genCheckMacValue(data.payment.allpay),
                         orderRef = rootRef.child('tasks').child(data['_id']);
+                    data.payment.allpay.CheckMacValue = CheckMacValue;
+
                     orderRef.child('payment/allpay/CheckMacValue').set(CheckMacValue)
-                        .then(function(){
-                            var delay = util.delayed(function(){
+                        .then(function () {
+                            var delay = util.delayed(function () {
                                 orderRef.child('status').off();
                                 resolve();
-                            }, data.waiting||60000);
-                            
-                            orderRef.child('status').on('value', function(snap){
-                                if(snap.val()==='established'){
-                                    console.log('established');
-                                    delay.immediate();
-                                    //var os =orderService(data, config)
-                                    //return os.add(data)
+                            }, data.waiting || 60000);
+
+                            orderRef.child('status').on('value', function (snap) {
+                                switch (snap.val()) {
+                                    case 'established':
+                                        console.log('established');
+                                        delay.immediate();
+                                        return os.add(data);
+                                        break;
+                                    case 'canceled':
+                                        delay.immediate();
+                                        break;
                                 }
                             })
                         });
-                } else {
-                    reject("invalid data");
-                    return;
-                }
-                break;
-        }
+
+                    break;
+            }
+        });
 
 
         //var tradeID = data.payment.allpay.MerchantTradeNo;
@@ -70,7 +87,6 @@ function init(config){
         //});
     });
 }
-
 
 
 module.exports = init;

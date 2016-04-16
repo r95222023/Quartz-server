@@ -34,7 +34,6 @@ SearchQueue.prototype = {
             var arr = _props.indexType.split(':');
             _props.index = arr[0];
             _props.type = arr[1];
-            console.log(_props);
         }
 
         if (!_props.index || !_props.type) {

@@ -12,6 +12,7 @@ auth()
         console.log('start server: ' + serverId);
 
         var tasks = require('require-dir')('./tasks'),
+            routes = require('require-dir')('./routes'),
             escPromise = initEsc({
                 port: 9200,
                 ip: "localhost",
@@ -27,6 +28,7 @@ auth()
         }, function(err){
             console.log(err);
         });
+        routes['allpayReceive']();
 
 
         // tasks['elasticsearch-index-paths'](config);
