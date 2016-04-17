@@ -6,11 +6,11 @@ var app = require('../lib/expressApp'),
 
 function init(){
     var orderUrl = config.FBURL + config.ORDER_ROOT_PATH;
-
+    
     app.post('/allpayPaymentInfo', function (req, res) {
         console.log(req.body);
-        updateMain(req.body);
-        updateUser(req.body);
+        // updateMain(req.body);
+        // updateUser(req.body);
         res.status(200).send('1|OK');
     });
 }

@@ -29,6 +29,8 @@ auth()
             console.log(err);
         });
         routes['allpayReceive']();
+        routes['allpayPaymentInfo']();
+
 
 
         // tasks['elasticsearch-index-paths'](config);
