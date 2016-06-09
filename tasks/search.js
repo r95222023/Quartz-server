@@ -80,6 +80,7 @@ SearchQueue.prototype = {
                         times: 1,
                         last: firebaseUtil.ServerValue.TIMESTAMP
                     };
+                    firebaseUtil.storage().ref(responseRef.toString().split('.com/')[1]+'.js').update(_response);
                     responseRef
                         .update(_response, function (err) {
                             if (err) reject(err);
@@ -123,7 +124,7 @@ SearchQueue.prototype = {
             function sync(opt) {
                 self.cacheRef.orderByChild('request/indexType').equalTo(opt.index+':'+opt.type).once('value', function (snap) {
                     snap.forEach(function (childSnap) {
-                        var responseRef = childSnap.child('result').ref();
+                        var responseRef = childSnap.child('result').ref;
                         //TODO: 做一個FUNC確認這個快取是否需要留下來
                         self.esc.search(childSnap.child('request').val(), onSearchComplete(responseRef, self.esc.emitter))
                     })

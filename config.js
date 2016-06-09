@@ -6,17 +6,21 @@ var FBURL = 'https://quartz.firebaseio.com',         //必要
     FBNAME = 'quartz',
     FIREBASE_SECRETE = 'XGasvxEnG2Dr9EmaR07aLmYisFMBqPJQSgyUam2I',
     ORDER_ROOT_PATH = '/orders',
-    SERVER_PATH = '/servers';
+    SERVER_PATH = '/servers',
+    FBCONFIG = {
+        serviceAccount: "./quartz-8fdc0aa77390.json",
+        databaseURL: "https://quartz.firebaseio.com"
+    };
 
 //SERVER_INFO
-var SERVER_INFO ={
-    description:'pc at home',
+var SERVER_INFO = {
+    description: 'pc at home',
     isTemporary: false,
-    serverMonitorRefUrl:'https://quartz-console.firebaseio.com/server_monitor',
-    monitors: {
-        "cpu": {interval:15000, samples:50},
-        "memory": {interval:60000, samples:50}
-    }
+    serverMonitorRefUrl: 'https://quartz.firebaseio.com/servers/monitors',
+    // monitors: {
+    //     "cpu": {interval: 15000, samples: 50},
+    //     "memory": {interval: 60000, samples: 50}
+    // }
 };
 
 //EMAIL
@@ -44,12 +48,13 @@ module.exports = {
     //GENERAL
     APP_NAME: APP_NAME,
     //FIREBASE
+    FBCONFIG: FBCONFIG,
     FBURL: FBURL,
     FIREBASE_SECRETE: FIREBASE_SECRETE,
     ORDER_ROOT_PATH: ORDER_ROOT_PATH,
     SERVER_PATH: SERVER_PATH,
     //SERVER_INFO
-    SERVER_INFO:SERVER_INFO,
+    SERVER_INFO: SERVER_INFO,
     //EMAIL
     //ALLPAY
     ALLPAY: ALLPAY

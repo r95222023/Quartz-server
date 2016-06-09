@@ -23,7 +23,7 @@ function init(config) {
             return;
         }
         
-        rootRef.root().child('sites/' + data.siteName + '/config/payment/' + data.payment.type).once('value', function (paymentParamSnap) {
+        rootRef.root.child('sites/' + data.siteName + '/config/payment/' + data.payment.type).once('value', function (paymentParamSnap) {
             var paymentParams = paymentParamSnap.val()||{},
                 publicParams = paymentParams.public||{},
                 privateParams = paymentParams.private||{};

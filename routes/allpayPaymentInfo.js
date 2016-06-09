@@ -5,20 +5,20 @@ var app = require('../lib/expressApp'),
 
 
 function init(){
-    var orderUrl = config.FBURL + config.ORDER_ROOT_PATH;
-    
+
     app.post('/allpayPaymentInfo', function (req, res) {
         console.log(req.body);
-        // updateMain(req.body);
-        // updateUser(req.body);
+        var siteName = req.params('sitename');
+        // updateMain(siteName,req.body);
+        // updateUser(siteName,req.body);
         res.status(200).send('1|OK');
     });
 }
 
-function updateMain(data) {
+function updateMain(siteName, data) {
     if (allpay.validateData(data)) {
         delete data.CheckMacValue;
-        var refUrl = orderUrl + '/' + data.MerchantTradeNo + '/payment';
+        var refUrl = 'sites/detail/'+siteName+'/orders/detail/' + data.MerchantTradeNo + '/payment';
         updateOrder(refUrl, data);
     } else {
         console.log('invalid data')

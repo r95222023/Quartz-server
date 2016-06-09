@@ -1,13 +1,10 @@
 var app = require('./lib/expressApp'),
-    auth = require('./lib/auth'),
-    watch = require('./lib/watch'),
     routes = require('require-dir')('./routes'),
     config = require('./config'),
     initEsc = require('./lib/esc'),
     serverGroup = require('./lib/servers')(config);
 
-auth()
-    .then(serverGroup.getReadyPromise)
+serverGroup.getReadyPromise()
     .then(function (serverId) {
         console.log('start server: ' + serverId);
 
@@ -33,7 +30,6 @@ auth()
 
 
 
-        // tasks['elasticsearch-index-paths'](config);
 
         ///////////////////
         var port = /*process.env.PORT || 8080*/ 3000;
