@@ -80,7 +80,6 @@ SearchQueue.prototype = {
                         times: 1,
                         last: firebaseUtil.ServerValue.TIMESTAMP
                     };
-                    firebaseUtil.storage().ref(responseRef.toString().split('.com/')[1]+'.js').update(_response);
                     responseRef
                         .update(_response, function (err) {
                             if (err) reject(err);

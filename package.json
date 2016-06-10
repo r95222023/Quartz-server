@@ -23,11 +23,13 @@
     "material design"
   ],
   "dependencies": {
+    "allpay":"1.1.0",
     "body-parser":"~1.14.1",
     "express":"~4.0.0",
     "firebase": "3.0.0",
     "firebase-queue": "1.4.0",
     "lodash":"~3.10.1",
+    "lz-string":"1.4.4",
     "q":"~1.4.1",
     "require-dir":"0.3.0",
     "rsvp": "3.x",

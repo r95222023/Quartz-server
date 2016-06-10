@@ -1,42 +1,46 @@
 var app = require('../lib/expressApp'),
-    allpay = require('../lib/allpay'),
+    allpay = require('allpay'),
     config = require('../config'),
-    firebaseUtil = require('../lib/firebaseUtil');
+    firebaseUtil = require('../lib/firebaseUtil'),
+    util = require('../lib/util');
 
 
-function init(){
-
+function init() {
     app.post('/allpayPaymentInfo', function (req, res) {
         console.log(req.body);
-        var siteName = req.params('sitename');
-        // updateMain(siteName,req.body);
-        // updateUser(siteName,req.body);
+        var siteName = req.params('sitename'),
+            uid = req.params('uid');
+        if (validateData(req.body)) {
+            updateMain(siteName, req.body);
+            updateUser(siteName, uid, req.body);
+        } else {
+            console.log('invalid order detected:' + JSON.stringify(req.body));
+        }
+
         res.status(200).send('1|OK');
     });
 }
 
-function updateMain(siteName, data) {
-    if (allpay.validateData(data)) {
-        delete data.CheckMacValue;
-        var refUrl = 'sites/detail/'+siteName+'/orders/detail/' + data.MerchantTradeNo + '/payment';
-        updateOrder(refUrl, data);
-    } else {
-        console.log('invalid data')
-    }
+function validateData(data) {
+    return data['CheckMacValue'] === allpay.genCheckMacValue(data);
 }
 
-function updateUser(data) {
-    var refUrl = orderUrl + '/' + data.MerchantTradeNo + '/clientInfo/uid';
-    firebaseUtil.ref(refUrl).once('value', function (snap) {
-        if (snap.val === null) return;
-        var uid = snap.val(),
-            userOrderRefUrl = config.FBURL + '/users/' + uid + config.ORDER_ROOT_PATH + '/' + data.MerchantTradeNo + '/payment';
-        updateOrder(userOrderRefUrl, data);
-    })
+function updateMain(siteName, data) {
+    delete data.CheckMacValue;
+    var refUrl = config.FBURL + 'sites/detail/' + siteName;
+    updateOrder(refUrl, data);
+}
+
+function updateUser(siteName, uid, data) {
+    var userOrderRefUrl = config.FBURL + '/sites/detail/' + siteName + '/users/detail/' + uid;
+    updateOrder(userOrderRefUrl, data)
 }
 
 function updateOrder(refUrl, data) {
-    firebaseUtil.ref(refUrl).update({allpay: data, status: 'waiting'})
+    var _data = {};
+    _data['orders/detail/' + data.MerchantTradeNo + '/payment'] = {allpay: data, status: 'pending'};
+    _data['orders/list/' + data.MerchantTradeNo + '/payment'] = {status: 'pending'};
+    firebaseUtil.ref(refUrl).update(_data)
 }
 
 module.exports = init;

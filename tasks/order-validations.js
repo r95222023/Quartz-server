@@ -1,5 +1,5 @@
 var defaultConfig = require('../config'),
-    allpay = require('../lib/allpay'),
+    allpay = require('allpay'),
     firebaseUtil = require('../lib/firebaseUtil'),
     util = require('../lib/util'),
     orderService = require('../lib/orderService');
