@@ -1,15 +1,15 @@
-var app = require('./lib/expressApp'),
-    routes = require('require-dir')('./routes'),
-    config = require('./config'),
-    initEsc = require('./lib/esc'),
-    serverGroup = require('./lib/servers')(config);
+var app = require('./src/lib/expressApp'),
+    routes = require('require-dir')('./src/routes'),
+    config = require('./src/config'),
+    initEsc = require('./src/lib/esc'),
+    serverGroup = require('./src/lib/servers')(config);
 
 serverGroup.getReadyPromise()
     .then(function (serverId) {
         console.log('start server: ' + serverId);
 
-        var tasks = require('require-dir')('./tasks'),
-            routes = require('require-dir')('./routes'),
+        var tasks = require('require-dir')('./src/tasks'),
+            routes = require('require-dir')('./src/routes'),
             escPromise = initEsc({
                 port: 9200,
                 ip: "localhost",
