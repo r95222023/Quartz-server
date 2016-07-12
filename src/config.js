@@ -8,6 +8,7 @@ var FBURL = 'https://quartz.firebaseio.com',         //必要
     ORDER_ROOT_PATH = '/orders',
     SERVER_PATH = '/servers',
     FBCONFIG = {
+        projectId: 'project-3415547818359859659',
         serviceAccount: "./quartz-8fdc0aa77390.json",
         databaseURL: "https://quartz.firebaseio.com"
     };

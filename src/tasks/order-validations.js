@@ -22,7 +22,7 @@ function init(config) {
             reject("invalid data");
             return;
         }
-        
+
         rootRef.root.child('sites/' + data.siteName + '/config/payment/' + data.payment.type).once('value', function (paymentParamSnap) {
             var paymentParams = paymentParamSnap.val()||{},
                 publicParams = paymentParams.public||{},
@@ -34,7 +34,7 @@ function init(config) {
                         .then(resolve);
                     break;
                 case 'allpay':
-                    
+
                     var CheckMacValue = allpay({
                             // debug: config.ALLPAY.DEBUG,
                             merchantID: publicParams.MerchantID||'2000132',

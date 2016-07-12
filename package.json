@@ -28,6 +28,7 @@
     "express":"~4.0.0",
     "firebase": "3.0.0",
     "firebase-queue": "1.4.0",
+    "gcloud":"0.36.0",
     "lodash":"~3.10.1",
     "lz-string":"1.4.4",
     "q":"~1.4.1",

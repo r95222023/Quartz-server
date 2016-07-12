@@ -1,12 +1,14 @@
 var config = require('../config'),
     firebaseUtil = require('../lib/firebaseUtil'),
     util = require('../lib/util'),
-    _ = require('lodash');
+    _ = require('lodash'),
+    lzString = require('lz-string'),
+    emitter = require('../lib/emitter');
 
 
 function SearchQueue(esc, options) {
     var _options = options || {};
-    _options.numWorkers = _options.numWorkers || 1;
+    _options.numWorkers = _options.numWorkers || 10;
     _options.sanitize = false;
     _options.suppressStack = _options.suppressStack || true;
 
@@ -21,7 +23,7 @@ function SearchQueue(esc, options) {
     this.cacheRef = typeof _options.cacheRefUrl === 'string' ? firebaseUtil.ref(_options.cacheRefUrl) : this.rootRef.child(_queryRefPath + '/cache');
 
     this._process();
-    this._syncCache();
+    this._resetCache();
 }
 
 
@@ -29,7 +31,7 @@ SearchQueue.prototype = {
     _asertValidSearch: function (props) {
         var res = true,
             _props = props || {};
-        
+
         if (typeof _props.indexType === 'string') {
             var arr = _props.indexType.split(':');
             _props.index = arr[0];
@@ -73,12 +75,12 @@ SearchQueue.prototype = {
                     reject(error);
                 } else {
                     var _response = {
-                        request: data,
-                        result: response.hits
-                    };
-                    _response.result.usage = {
-                        times: 1,
-                        last: firebaseUtil.ServerValue.TIMESTAMP
+                        // request: data,
+                        compressed: lzString.compressToUTF16(JSON.stringify({result:response.hits})),
+                        usage:{
+                            times: 1,
+                            created: firebaseUtil.ServerValue.TIMESTAMP
+                        }
                     };
                     responseRef
                         .update(_response, function (err) {
@@ -98,10 +100,10 @@ SearchQueue.prototype = {
             }
         });
     },
-    _syncCache: function () {
+    _resetCache: function () {
         var self = this;
 
-        function onSearchComplete(responseRef, emitter) {
+        function onSearchComplete(responseRef) {
             return function (error, response) {
                 if (error) {
                     emitter.emit('error', error);
@@ -119,19 +121,11 @@ SearchQueue.prototype = {
             }
         }
 
-        if (this.esc.emitter) {
-            function sync(opt) {
-                self.cacheRef.orderByChild('request/indexType').equalTo(opt.index+':'+opt.type).once('value', function (snap) {
-                    snap.forEach(function (childSnap) {
-                        var responseRef = childSnap.child('result').ref;
-                        //TODO: 做一個FUNC確認這個快取是否需要留下來
-                        self.esc.search(childSnap.child('request').val(), onSearchComplete(responseRef, self.esc.emitter))
-                    })
-                })
-            }
-
-            this.esc.emitter.on('index_changed', util.debounce(sync, 10000));
+        function reset(opt) {
+            if((typeof opt.index==='string')&&(typeof opt.type==='string')) self.cacheRef.child(opt.index+opt.type).remove();
         }
+
+        emitter.on('index_changed', util.debounce(reset, 10000));
     },
     _isJson: function (str) {
         try {

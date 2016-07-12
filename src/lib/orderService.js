@@ -72,16 +72,16 @@ OrderService.prototype = {
             totalAmount: data.totalAmount
         };
         
-        // var listData = {
-        //     createdTime:now,
-        //     id: data.id,
-        //     paymentType: payment.type,
-        //     cart:data.cart,
-        //     clientInfo:data.clientInfo,
-        //     totalAmount: data.totalAmount
-        // };
-        //
-        // orderData['sites/detail/'+data.siteName+'/orders/list/'+data.id]=listData;
+        var listData = {
+            createdTime:now,
+            id: data.id,
+            paymentType: payment.type,
+            cart:data.cart,
+            clientInfo:data.clientInfo,
+            totalAmount: data.totalAmount
+        };
+        
+        orderData['sites/detail/'+data.siteName+'/orders/list/'+data.id]=listData;
         // orderData['users/detail/'+data.clientInfo.uid+'/orders/'+data.siteName+'/'+data.id]=listData;
 
         //add and index order
@@ -120,8 +120,3 @@ OrderService.prototype = {
 module.exports = function (order, config) {
     return new OrderService(order, config)
 };
-
-
-/**
- * Created by BOSS on 2016/4/7.
- */

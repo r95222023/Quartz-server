@@ -27,6 +27,10 @@ function debounce(func, wait, immediate) {
     };
 }
 
+function to2dig(num) {
+    return num < 10 ? ('0' + num) : num;
+}
+
 
 function delayed(resolve, delay) {
     var timeout = setTimeout(function () {
@@ -71,5 +75,6 @@ module.exports = {
     compress:compress,
     decompress:decompress,
     debounce:debounce,
-    delayed:delayed
+    delayed:delayed,
+    to2dig:to2dig
 };

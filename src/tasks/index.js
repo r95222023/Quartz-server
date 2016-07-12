@@ -1,5 +1,6 @@
 var defaultConfig = require('../config'),
-    firebaseUtil = require('../lib/firebaseUtil');
+    firebaseUtil = require('../lib/firebaseUtil'),
+    emitter = require('../lib/emitter');
 
 function init(esc, config) {
 
@@ -24,7 +25,7 @@ function init(esc, config) {
         if (data.body) req.body = data.body;
 
         function indexChanged() {
-            esc.emitter.emit('index_changed', {index: data.index, type: data.type});
+            emitter.emit('index_changed', {index: data.index, type: data.type});
         }
 
         switch (data.task) {
@@ -69,7 +70,3 @@ function init(esc, config) {
 }
 
 module.exports = init;
-
-
-
-

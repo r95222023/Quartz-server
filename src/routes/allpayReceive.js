@@ -2,6 +2,7 @@ var app = require('../lib/expressApp'),
     allpay = require('allpay'),
     config = require('../config'),
     firebaseUtil = require('../lib/firebaseUtil'),
+    analytics = require('../lib/analytics'),
     util = require('../lib/util');
 
 function init() {
@@ -12,6 +13,7 @@ function init() {
         var siteName = req.params('sitename'),
             uid = req.params('uid');
         if (validateData(req.body)) {
+            analytics.update(siteName, req.body.MerchantTradeNo);
             updateMain(siteName, req.body);
             updateUser(siteName, uid, req.body);
         } else {
