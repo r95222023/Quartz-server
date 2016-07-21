@@ -4,6 +4,7 @@ var app = require('./src/lib/expressApp'),
     initEsc = require('./src/lib/esc'),
     serverGroup = require('./src/lib/servers')(config);
 
+
 serverGroup.getReadyPromise()
     .then(function (serverId) {
         console.log('start server: ' + serverId);

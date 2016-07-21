@@ -77,9 +77,10 @@ SearchQueue.prototype = {
                     var _response = {
                         // request: data,
                         compressed: lzString.compressToUTF16(JSON.stringify({result:response.hits})),
+                        editTime:firebaseUtil.ServerValue.TIMESTAMP,
                         usage:{
-                            times: 1,
-                            created: firebaseUtil.ServerValue.TIMESTAMP
+                            // created: firebaseUtil.ServerValue.TIMESTAMP,
+                            times: 1
                         }
                     };
                     responseRef

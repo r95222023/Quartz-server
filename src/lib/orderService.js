@@ -90,6 +90,9 @@ OrderService.prototype = {
         });
         return def.promise;
     },
+    remove: function(){
+        self.rootRef.remove();
+    },
     charge: function(data){
         var def = q.defer();
         switch(data.payment.type){
