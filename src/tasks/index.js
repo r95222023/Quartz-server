@@ -7,7 +7,7 @@ function init(esc, config) {
     var _config = config || {},
         options = {
             'specId': 'index',
-            'numWorkers': _config.numWorkers || 1,
+            'numWorkers': _config.numWorkers || 10,
             'sanitize': _config.sanitize || false,
             'suppressStack': _config.suppressStack || true
         },

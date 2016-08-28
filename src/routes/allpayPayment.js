@@ -7,7 +7,7 @@ function resolve(res){
     }
 }
 
-function init(){
+function init(config){
     app.post('/allpayPaymentInfo', function (req, res) {
         emitter.emit('allpay_order_established',{provider:'allpay', data:req.body, siteName:req.query.siteName, resolve:resolve(res)});
     });

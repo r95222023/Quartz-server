@@ -1,76 +1,75 @@
 var defaultConfig = require('../config'),
-    allpay = require('allpay'),
+    Allpay = require('allpay'),
     firebaseUtil = require('../lib/firebaseUtil'),
     util = require('../lib/util'),
     _ = require('lodash'),
     orderService = require('../lib/orderService'),
     emitter = require('../lib/emitter');
 
-
 function initAllpay(config) {
-    var options = {
-            'specId': 'order_validate_allpay',
+    var genChkOpt = {
+            'specId': 'allpay_gen_check_mac',
+            'numWorkers': config.numWorkers || 10,
+            'sanitize': false,
+            'suppressStack': config.suppressStack || true
+        },
+        tempOrderOpt = {
+            'specId': 'allpay_reg_temp_order',
             'numWorkers': config.numWorkers || 10,
             'sanitize': false,
             'suppressStack': config.suppressStack || true
         },
         rootRef = firebaseUtil.ref(config.FBURL || defaultConfig.FBURL).child("queue");
-    var queue = firebaseUtil.queue(rootRef, options, function (data, progress, resolve, reject) {
+    firebaseUtil.queue(rootRef, genChkOpt, function (data, progress, resolve, reject) {
         var os = orderService(data);
 
         if (!os.isValid()) {
             resolve();
-            return;
+        } else {
+            rootRef.root.child('sites/' + data.siteName + '/config/payment/' + data.payment.type).once('value', function (paymentParamSnap) {
+                var paymentParams = paymentParamSnap.val() || {},
+                    publicParams = util.decompress(paymentParams.public) || {},
+                    privateParams = util.decompress(paymentParams.private) || {};
+                var allpay = new Allpay({
+                        // debug: config.ALLPAY.DEBUG,
+                        merchantID: publicParams.MerchantID || '2000132',
+                        hashKey: privateParams.HashKey || '5294y06JbISpM5x9',
+                        hashIV: privateParams.HashIV || 'v77hoKGq4kWxNNIS'
+                    }),
+                    CheckMacValue = allpay.genCheckMacValue(data.payment.allpay),
+                    orderRef = rootRef.child('tasks').child(data['_id']);
+                data.payment.allpay.CheckMacValue = CheckMacValue;
+
+                orderRef.child('payment/allpay/CheckMacValue').set(CheckMacValue)
+                    .then(function () {
+                        //
+                        // _.assign(data.payment.allpay, msg.data, {
+                        //     CheckMacValue: null,
+                        //     PaymentInfoURL: null,
+                        //     ReturnURL: null
+                        // });
+                        resolve();
+                        // os.register().then(function(){
+                        //     resolve();
+                        // });
+                    });
+
+            });
+
         }
 
-        rootRef.root().child('sites/' + data.siteName + '/config/payment/' + data.payment.type).once('value', function (paymentParamSnap) {
-            var paymentParams = paymentParamSnap.val() || {},
-                publicParams = paymentParams.public || {},
-                privateParams = paymentParams.private || {};
-            var CheckMacValue = allpay({
-                    // debug: config.ALLPAY.DEBUG,
-                    merchantID: publicParams.MerchantID || '2000132',
-                    hashKey: privateParams.HashKey || '5294y06JbISpM5x9',
-                    hashIV: privateParams.HashIV || 'v77hoKGq4kWxNNIS'
-                }).genCheckMacValue(data.payment.allpay),
-                orderRef = rootRef.child('tasks').child(data['_id']);
-            data.payment.allpay.CheckMacValue = CheckMacValue;
-
-            orderRef.child('payment/allpay/CheckMacValue').set(CheckMacValue)
-                .then(function () {
-                    var delay = util.delayed(function () {
-                        orderRef.child('status').off();
-                        resolve();
-                    }, data.waiting || 60000);
-                    
-                    _.assign(data.payment.allpay, msg.data, {
-                        CheckMacValue: null,
-                        PaymentInfoURL: null,
-                        ReturnURL: null
-                    });
-                    os.add(data);
-
-                    orderRef.child('status').on('value', function(snap){
-                        if(snap.val()==='canceled') {
-                            os.remove(data);
-                            delay.immediate();
-                        }
-                    });
-                    // function listener(msg) {
-                    //     console.log(msg);
-                    //     delay.immediate();
-                    // }
-
-                    setTimeout(function () {
-                        delay.immediate();
-                        // emitter.removeListener('allpay_order_established', listener)
-                    }, 600000);
-
-                    // emitter.once('allpay_order_established', listener);
-                });
-
-        });
     });
+    firebaseUtil.queue(rootRef, tempOrderOpt, function (data, progress, resolve, reject) {
+        var os = orderService(data);
+        data['_id']=data['_owner']=data['_state']=data['_progress']=data['_state_changed']=null;
+        if (!os.isValid()) {
+            resolve();
+        } else {
+            rootRef.root.child('sites/detail/' + data.siteName + '/orders/temp/' + data.id).set(data).then(function(){
+                resolve();
+            });
+        }
+    })
 }
 
 function initStripe(config) {
@@ -90,7 +89,7 @@ function initStripe(config) {
             return;
         }
 
-        rootRef.root().child('sites/' + data.siteName + '/config/payment/' + data.payment.type).once('value', function (paymentParamSnap) {
+        rootRef.root.child('sites/' + data.siteName + '/config/payment/' + data.payment.type).once('value', function (paymentParamSnap) {
             var paymentParams = paymentParamSnap.val() || {},
                 publicParams = paymentParams.public || {},
                 privateParams = paymentParams.private || {};
@@ -108,90 +107,7 @@ function init(config) {
 
     initAllpay(_config);
     initStripe(_config);
-    // var options = {
-    //         'specId': 'order_validate',
-    //         'numWorkers': _config.numWorkers || 10,
-    //         'sanitize': false,
-    //         'suppressStack': _config.suppressStack || true
-    //     },
-    //     rootRef = firebaseUtil.ref(_config.FBURL || defaultConfig.FBURL).child("queue");
-    // var queue = firebaseUtil.queue(rootRef, options, function (data, progress, resolve, reject) {
-    //     var os = orderService(data);
-    //
-    //     if (!os.isValid()) {
-    //         reject("invalid data");
-    //         return;
-    //     }
-    //
-    //     rootRef.root().child('sites/' + data.siteName + '/config/payment/' + data.payment.type).once('value', function (paymentParamSnap) {
-    //         var paymentParams = paymentParamSnap.val() || {},
-    //             publicParams = paymentParams.public || {},
-    //             privateParams = paymentParams.private || {};
-    //         switch (data.payment.type) {
-    //             case 'stripe':
-    //                 os.add(data)
-    //                     .then(os.charge)
-    //                     .then(resolve);
-    //                 break;
-    //             case 'allpay':
-    //
-    //                 var CheckMacValue = allpay({
-    //                         // debug: config.ALLPAY.DEBUG,
-    //                         merchantID: publicParams.MerchantID || '2000132',
-    //                         hashKey: privateParams.HashKey || '5294y06JbISpM5x9',
-    //                         hashIV: privateParams.HashIV || 'v77hoKGq4kWxNNIS'
-    //                     }).genCheckMacValue(data.payment.allpay),
-    //                     orderRef = rootRef.child('tasks').child(data['_id']);
-    //                 data.payment.allpay.CheckMacValue = CheckMacValue;
-    //
-    //                 orderRef.child('payment/allpay/CheckMacValue').set(CheckMacValue)
-    //                     .then(function () {
-    //                         var delay = util.delayed(function () {
-    //                             orderRef.child('status').off();
-    //                             resolve();
-    //                         }, data.waiting || 60000);
-    //
-    //
-    //                         function listener(msg) {
-    //                             console.log(msg);
-    //                             _.assign(data.payment.allpay, msg.data, {
-    //                                 CheckMacValue: null,
-    //                                 PaymentInfoURL: null,
-    //                                 ReturnURL: null
-    //                             });
-    //                             delay.immediate();
-    //                             return os.add(data);
-    //                         }
-    //
-    //                         setTimeout(function () {
-    //                             emitter.removeListener('allpay_order_established', listener)
-    //                         }, 600000);
-    //
-    //                         emitter.once('allpay_order_established', listener);
-    //                     });
-    //
-    //                 break;
-    //         }
-    //     });
-
-
-    //var tradeID = data.payment.allpay.MerchantTradeNo;
-    //var updateData = {};
-    //var indicator = ['_owner', '_state', '_state_changed', '_progress'],
-    //    indicatorValue = [null, 'stored', null, null];
-    //for (var i = 0; i < indicator.length; i++) {
-    //    updateData['orders/' + tradeID + '/' + indicator[i]] = indicatorValue[i]
-    //}
-
-
-    //updateData['orders/' + tradeID + '/payment/allpay/CheckMacValue'] = allpay.genCheckMacValue(data.payment.allpay);
-    //resolver.set('index_changed', 'quartz/order/'+tradeID, resolve);
-
-    //rootRef.update(updateData, function () {
-    //    resolve(data);
-    //});
 }
-
 
 
 module.exports = init;

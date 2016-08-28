@@ -22,7 +22,7 @@ serverGroup.getReadyPromise()
             tasks['index'](esc);
             tasks['search'](esc);
 
-            tasks['order-validations']();
+            tasks['order']();
         }, function(err){
             console.log(err);
         });
