@@ -112,7 +112,7 @@
     "yargs": "^4.8.0",
     "allpay":"1.1.0",
     "firebase-queue": "1.5.0",
-    "lodash":"~3.10.1",
+    "lodash":"~4.15.0",
     "lz-string":"1.4.4",
     "q":"~1.4.1",
     "require-dir":"0.3.0",

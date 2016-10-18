@@ -2,9 +2,9 @@ var q = require('q'),
     _ = require('lodash'),
     LZString  = require('lz-string');
 
-function resolve(promiseList, localPromises, globalPromises) {
-    var promises = [];
-    _.forEach(promiseList, function (promiseName, i) {
+function resolve(promiseList:any, localPromises:any, globalPromises:any) {
+    var promises:any[] = [];
+    _.forEach(promiseList, function (promiseName:any, i :number) {
         if (typeof promiseName === 'string') promises[i] = localPromises[promiseName] || globalPromises[promiseName]
     });
     //if(promises.length===0) {var def= q.defer(); def.resolve();}
@@ -12,8 +12,8 @@ function resolve(promiseList, localPromises, globalPromises) {
 }
 
 
-function debounce(func, wait, immediate) {
-    var timeout;
+function debounce(func:any, wait:any, immediate:boolean) {
+    var timeout:any;
     return function () {
         var context = this, args = arguments;
         var later = function () {
@@ -27,34 +27,34 @@ function debounce(func, wait, immediate) {
     };
 }
 
-function to2dig(num) {
-    return num < 10 ? ('0' + num) : num;
+function to2dig(num:number) {
+    return num < 10 ? ('0' + num) : num+'';
 }
 
 
-function delayed(resolve, delay) {
+function delayed(resolve:any, delay:any) {
     var timeout = setTimeout(function () {
         resolve();
     }, delay || 10000);
     return {
         immediate:function(){
-            clearTimeout(timeout);
+            window.clearTimeout(timeout);
             resolve();
         },
         cancel: function(){
-            clearTimeout(timeout);
+          window.clearTimeout(timeout);
         }
     }
 }
 
-function compress(data) {
+function compress(data:any) {
     return LZString.compressToUTF16(JSON.stringify(data));
 }
 
-function decompress(val) {
+function decompress(val:any) {
     if (!val||!val.compressed) return val;
 
-    var decompressed, res;
+    var decompressed:any, res:any;
     if (val.compressed) {
         decompressed = JSON.parse(LZString.decompressFromUTF16(val.compressed));
     }

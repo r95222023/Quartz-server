@@ -1,3 +1,6 @@
+# Usage
+Run npm run build.server.dev
+
 # Introduction
 
 [![Angular 2 Style Guide](https://mgechev.github.io/angular2-style-guide/images/badge.svg)](https://angular.io/styleguide)

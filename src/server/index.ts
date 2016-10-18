@@ -91,4 +91,4 @@ export function init(port: number, mode: string) {
       resolve(server);
     });
   });
-};
+}

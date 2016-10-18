@@ -13,7 +13,7 @@ function parseRefUrl(refUrl: string, params: any) {
     res = config.paths[refUrl];
     if (typeof params === 'object') {
       _.forEach(params.params||params, function (val: string, key: string) {
-        res.replace(':' + key, val);
+        res = res.replace(':' + key, val);
       });
     }
   }
