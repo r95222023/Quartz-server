@@ -2,7 +2,7 @@ var firebase = require("firebase"),
   Queue = require('firebase-queue'),
   q = require('q'),
   _ = require('lodash'),
-  config = require('../../config/firebase.config');
+  config = require('../../configs/firebase.config');
 ///
 firebase.initializeApp(config);
 

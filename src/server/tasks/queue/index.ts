@@ -3,7 +3,6 @@ var firebaseUtil = require('../components/firebaseUtil/firebaseUtil.service'),
     errorHandler = require('../components/errorHandler/errorHandler.service');
 
 let initIndex = (esc: any, config: any)=> {
-
     var _config = config || {},
         options = {
             'specId': 'index',
@@ -73,4 +72,4 @@ let initIndex = (esc: any, config: any)=> {
     });
 };
 
-module.exports = initIndex;
+export = initIndex;

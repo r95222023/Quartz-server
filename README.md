@@ -1,5 +1,5 @@
 # Usage
-Run npm run build.server.dev
+Run gulp build.server.dev
 
 # Introduction
 

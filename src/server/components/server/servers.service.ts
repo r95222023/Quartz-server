@@ -131,6 +131,6 @@ function getOnlineStat(snap: any) {
 }
 
 
-module.exports = function (config: Object) {
+export = function serverService (config: Object) {
   return new ServerService(config);
-};
+}

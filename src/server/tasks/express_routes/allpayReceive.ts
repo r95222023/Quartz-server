@@ -2,21 +2,23 @@ var app = require('../lib/expressApp'),
     allpay = require('allpay'),
     config = require('../config'),
     firebaseUtil = require('../lib/firebaseUtil'),
+    analytics = require('../lib/analytics'),
     util = require('../lib/util');
 
-
-function init() {
-    app.post('/allpayPaymentInfo', function (req, res) {
+function init(esc: any) {
+    app.post('/allpayReceive', function (req, res) {
         console.log(req.body);
+        console.log('check' + allpay.genCheckMacValue(req.body));
+
         var siteName = req.params('sitename'),
             uid = req.params('uid');
         if (validateData(req.body)) {
+            analytics.update(siteName, req.body.MerchantTradeNo);
             updateMain(siteName, req.body);
             updateUser(siteName, uid, req.body);
         } else {
             console.log('invalid order detected:' + JSON.stringify(req.body));
         }
-
         res.status(200).send('1|OK');
     });
 }
@@ -38,9 +40,10 @@ function updateUser(siteName, uid, data) {
 
 function updateOrder(refUrl, data) {
     var _data = {};
-    _data['orders/detail/' + data.MerchantTradeNo + '/payment'] = {allpay: data, status: 'pending'};
-    _data['orders/list/' + data.MerchantTradeNo + '/payment'] = {status: 'pending'};
+    _data['orders/detail/' + data.MerchantTradeNo + '/payment'] = {allpay: data, status: 'paid'};
+    _data['orders/list/' + data.MerchantTradeNo + '/payment'] = {status: 'paid'};
     firebaseUtil.ref(refUrl).update(_data)
 }
+
 
 module.exports = init;
