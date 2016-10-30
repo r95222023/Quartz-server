@@ -25,7 +25,7 @@ var site = 'sites/detail/:siteName',
     'site-path':site+'/:path',
     'site-config-preload': site+'/config/preload',
     'site-config-payment':site+'/config/payments/:provider',
-    'temps':'temp/:type/:provider',
+    'site-temps':site+'/temp/:type',
     'files':site+'/files',
     'file-path':site+'/files/:path',
     'file-root-path':site+'/files:path',
@@ -47,7 +47,6 @@ var site = 'sites/detail/:siteName',
     'orders': site + '/orders/:type',
     'site-orders': site + '/orders/:type',
     'user-order': user + '/orders/:type/:id',
-    'orders-analysis': site + '/orders/analysis/:dateId',
     'notifications':'users/detail/:uid/notifications'
   };
 
