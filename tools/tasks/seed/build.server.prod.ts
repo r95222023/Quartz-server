@@ -2,7 +2,7 @@ import * as gulp from 'gulp';
 import * as gulpLoadPlugins from 'gulp-load-plugins';
 import { join } from 'path';
 
-import { TMP_SERVER_DIR, TOOLS_DIR, APP_SERVER_DEST } from '../../config';
+import Config from '../../config';
 import { makeTsProject } from '../../utils';
 
 const plugins = <any>gulpLoadPlugins();
@@ -15,17 +15,17 @@ export = () => {
   let tsProject = makeTsProject();
   let src = [
     'typings/index.d.ts',
-    TOOLS_DIR + '/manual_typings/**/*.d.ts',
-    join(TMP_SERVER_DIR, '**/*.ts')
+    Config.TOOLS_DIR + '/manual_typings/**/*.d.ts',
+    join(Config.TMP_SERVER_DIR, '**/*.ts')
   ];
   let result = gulp.src(src)
     .pipe(plugins.plumber())
-    .pipe(plugins.typescript(tsProject))
+    .pipe(tsProject())
     .once('error', function () {
       this.once('finish', () => process.exit(1));
     });
 
 
   return result.js
-    .pipe(gulp.dest(APP_SERVER_DEST));
+    .pipe(gulp.dest(Config.APP_SERVER_DEST));
 };

@@ -2,12 +2,12 @@ import * as gulp from 'gulp';
 import * as util from 'gulp-util';
 import * as runSequence from 'run-sequence';
 
-import { PROJECT_TASKS_DIR, SEED_TASKS_DIR } from './tools/config';
+import Config from './tools/config';
 import { loadTasks } from './tools/utils';
 
 
-loadTasks(SEED_TASKS_DIR);
-loadTasks(PROJECT_TASKS_DIR);
+loadTasks(Config.SEED_TASKS_DIR);
+loadTasks(Config.PROJECT_TASKS_DIR);
 
 
 // --------------
@@ -15,14 +15,13 @@ loadTasks(PROJECT_TASKS_DIR);
 gulp.task('build.dev', (done: any) =>
   runSequence(//'clean.dev',
 //              'tslint',
-//              'css-lint',
               'build.assets.dev',
               'build.html_css',
               'build.js.dev',
               'build.index.dev',
               'build.server.dev',
               'copy.server.assets',
-              done));
+    done));
 
 // --------------
 // Build dev watch.
@@ -46,16 +45,38 @@ gulp.task('build.e2e', (done: any) =>
 // --------------
 // Build prod.
 gulp.task('build.prod', (done: any) =>
-  runSequence('clean.prod',
+  runSequence('check.tools',
+              'clean.prod',
               'tslint',
-              'css-lint',
               'build.assets.prod',
               'build.html_css',
-              'copy.client.js.prod',
+              'copy.prod',
               'copy.server.js.prod',
+              'build.server.prod',
               'build.js.prod',
               'build.bundles',
               'build.bundles.app',
+              'minify.bundles',
+              'build.index.prod',
+              'copy.server.assets',
+              done));
+
+// --------------
+// Build prod.
+gulp.task('build.prod.exp', (done: any) =>
+  runSequence('check.tools',
+              'clean.prod',
+              'tslint',
+              'build.assets.prod',
+              'build.html_css',
+              'copy.prod',
+              'copy.server.js.prod',
+              'build.server.prod',
+              'compile.ahead.prod',
+              'build.js.prod.exp',
+              'build.bundles',
+              'build.bundles.app.exp',
+              'minify.bundles',
               'build.index.prod',
               'build.server.prod',
               'copy.server.assets',
@@ -71,6 +92,8 @@ gulp.task('build.test', (done: any) =>
               'build.js.dev',
               'build.js.test',
               'build.index.dev',
+              'build.server.dev',
+              'copy.server.assets',
               done));
 
 // --------------
@@ -81,12 +104,6 @@ gulp.task('test.watch', (done: any) =>
               'karma.watch',
               done));
 
-// --------------
-// Build tools.
-gulp.task('build.tools', (done: any) =>
-  runSequence('clean.tools',
-              'build.js.tools',
-              done));
 
 // --------------
 // Docs
@@ -121,10 +138,24 @@ gulp.task('serve.prod', (done: any) =>
 
 
 // --------------
+// Serve prod exp
+gulp.task('serve.prod.exp', (done: any) =>
+  runSequence('build.prod.exp',
+              'server.prod',
+              done));
+
+// --------------
 // Test.
 gulp.task('test', (done: any) =>
   runSequence('build.test',
               'karma.run',
+              done));
+
+// --------------
+// Clean directories after i18n
+// TODO: find a better way to do it
+gulp.task('clean.i18n', (done: any) =>
+  runSequence('clear.files',
               done));
 
 // --------------
@@ -134,9 +165,10 @@ let firstRun = true;
 gulp.task('clean.once', (done: any) => {
   if (firstRun) {
     firstRun = false;
-    runSequence('clean.dev', 'clean.coverage', done);
+    runSequence('check.tools', 'clean.dev', 'clean.coverage', done);
   } else {
     util.log('Skipping clean on rebuild');
     done();
   }
-})
+});
+
