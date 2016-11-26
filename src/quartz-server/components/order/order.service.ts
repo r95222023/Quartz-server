@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 // import errorHandler = require('../errorHandler/errorHandler.service'); //see https://zhongsp.gitbooks.io/typescript-handbook/content/doc/handbook/Modules.html
-import firebaseUtil = require('../firebaseUtil/firebaseUtil.service'); //see https://zhongsp.gitbooks.io/typescript-handbook/content/doc/handbook/Modules.html
+let firebaseUtil = require('../firebaseUtil/firebaseUtil.service');
 
 class Payment {
     private _totalAmount: number;
@@ -140,7 +140,7 @@ export class Order {
         let now: string = getDate(nowDate);
         let yearAgo: string = getDate(new Date(nowDate.getTime() - 366 * 86400000)); //366 days
 
-        let orderAnalyticsRef: any = firebaseUtil.ref('site-orders?siteName=' + this._siteName + '&type=analytics',{});
+        let orderAnalyticsRef: any = firebaseUtil.ref('site-orders?siteName=' + this._siteName + '&type=analytics');
 
         //update order summary
         orderAnalyticsRef.child('summary').transaction((current:any)=> {

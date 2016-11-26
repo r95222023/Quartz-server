@@ -16,6 +16,12 @@ serverService({}).onReady().then(function (serverId:any) {
   }).onReady().then(function (esc:any) {
     console.log('elasticsearch found, start loading tasks');
     task_queue['index'](esc);
-    task_queue['search'](esc);
+    require('./tasks/plan/plan_allpay')(esc);
+    task_queue['test'](esc);
+
+    // task_queue['search'](esc);
   });
 });
+export=()=>{
+  console.log('temp')
+}

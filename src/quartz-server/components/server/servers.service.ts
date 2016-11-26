@@ -2,7 +2,6 @@
 let fbUtil = require('../firebaseUtil/firebaseUtil.service'),
   os = require('os'),
   events = require('events'),
-  q = require('q'),
   _ = require('lodash');
 
 
@@ -12,10 +11,10 @@ let serverGroupRefs: any = {},
 
 class ServerService {
   private serverRef: any;
-  private def: any;
   serverId: string;
   serverInfo: any;
   stat: any;
+  onReady: any;
 
   constructor(config: Object) {
     let serverRef = fbUtil.ref('servers', {}),
@@ -23,7 +22,6 @@ class ServerService {
       self = this;
 
     this.serverRef = serverRef;
-    this.def = q.defer();
     this.serverId = fbUtil.formalizeKey(os.hostname());
     this.serverInfo = {
       arch: os.arch(),
@@ -36,49 +34,54 @@ class ServerService {
       status: 'online'
     };
 
-    onlineServerRef.on('value', (snap: any)=> {
+    onlineServerRef.on('value', (snap: any) => {
       //on(xxx, onComplete) 只要執行就會先跑一次onComeplete不管遠端資料是不是真的傳進來
       self.stat = _.merge(self.stat || {}, getOnlineStat(snap));
       eventEmitter.emit('value', snap)
     });
 
-    onlineServerRef.on('child_added', (snap: any)=> {
+    onlineServerRef.on('child_added', (snap: any) => {
       serverGroupRefs[snap.key] = snap.ref;
       eventEmitter.emit('child_added', snap);
     });
 
-    onlineServerRef.on('child_removed', (oldSnap: any)=> {
+    onlineServerRef.on('child_removed', (oldSnap: any) => {
       if (self.serverId !== oldSnap.key) {
         serverGroupRefs[oldSnap.key].off();
         delete serverGroupRefs[oldSnap.key];
       }
       eventEmitter.emit('child_removed', oldSnap);
     });
-    this.keepOnline(this.serverId);
+
+    this.onReady = () => {
+      return new Promise((resolve, reject) => {
+        this.keepOnline(this.serverId, resolve,reject);
+      })
+    }
   }
 
-  keepOnline(serverId: string) {
-    var ref = this.serverRef.child('online').child(serverId),
+  keepOnline(serverId: string, resolve: any, reject: any) {
+    let ref = this.serverRef.child('online').child(serverId),
       isReconnect = false;
-    ref.on('value', (snap: any)=> {
+    ref.on('value', (snap: any) => {
       if (snap.val() === null) {
-        this.regServer(serverId, isReconnect);
+        this.regServer(serverId, resolve, reject, isReconnect);
         isReconnect = true;
       }
     });
   }
 
-  regServer(serverId: string, isReconnect: boolean) {
+  regServer(serverId: string, resolve: any, reject: any, isReconnect: boolean) {
     let serverRef = this.serverRef;
     serverRef.child('online').child(serverId).set({
       startAt: fbUtil.ServerValue.TIMESTAMP
-    }, (error: any)=> {
+    }, (error: any) => {
       //server is registered now
       if (isReconnect) console.log('reconnected');
       if (error) {
-        this.def.reject(error);
+        reject(error);
       } else {
-        this.def.resolve(serverId);
+        resolve(serverId);
       }
     });
     serverRef.child('online').child(serverId).onDisconnect().set(null);
@@ -109,10 +112,6 @@ class ServerService {
       eventEmitter.removeAllListeners(event);
     }
   };
-
-  onReady() {
-    return this.def.promise;
-  };
 }
 
 
@@ -131,6 +130,6 @@ function getOnlineStat(snap: any) {
 }
 
 
-export = function serverService (config: Object) {
+export = function serverService(config: Object) {
   return new ServerService(config);
 }

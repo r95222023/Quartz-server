@@ -5,7 +5,7 @@ let app = require('../../components/expressApp/expressApp.service'),
 import {Order} from '../../components/order/order.service'
 
 function init(esc: any) {
-  let rtnHandler = function (req, res) {
+  let rtnHandler = function (req:any, res:any) {
         console.log(req.body);
     let siteName = req.params('sitename'),
             paymentData = req.body;

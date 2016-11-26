@@ -14,7 +14,6 @@ let decompress = function (val: any) {
     decompressed = JSON.parse(LZString.decompressFromUTF16(val.compressed));
   }
 
-
   if (_.isObject(decompressed) && !_.isArray(decompressed)) {
     res = _.extend({}, val, decompressed);
     delete res.compressed;

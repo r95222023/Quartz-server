@@ -1,16 +1,5 @@
-let q = require('q'),
-    _ = require('lodash'),
+let _ = require('lodash'),
     LZString  = require('lz-string');
-
-function resolve(promiseList:any, localPromises:any, globalPromises:any) {
-    let promises:any[] = [];
-    _.forEach(promiseList, function (promiseName:any, i :number) {
-        if (typeof promiseName === 'string') promises[i] = localPromises[promiseName] || globalPromises[promiseName]
-    });
-    //if(promises.length===0) {var def= q.defer(); def.resolve();}
-    return q.all(promises)
-}
-
 
 function debounce(func:any, wait:any, immediate?:boolean) {
   let timeout:any;
@@ -71,7 +60,6 @@ function decompress(val:any) {
 }
 
 export= {
-    resolve: resolve,
     compress:compress,
     decompress:decompress,
     debounce:debounce,
