@@ -8,6 +8,8 @@ let serverService = require('./components/server/servers.service');
 
 serverService({}).onReady().then(function (serverId:any) {
   console.log('start server: ' + serverId);
+  require('./tasks/plan/plan_allpay_return_urls_test')({});
+
   esc({
     port: 9200,
     ip: "localhost",
