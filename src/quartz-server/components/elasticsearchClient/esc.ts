@@ -25,7 +25,8 @@ function checkConnection(resolve:any, reject:any, config:any, retry:number) {
     } else {
       console.log('cant find elasticsearch service, attempt to retry:' + retry);
       setTimeout(function () {
-        checkConnection(resolve,reject, config, retry++);
+        retry++;
+        checkConnection(resolve,reject, config, retry);
       }, 10000)
     }
   });

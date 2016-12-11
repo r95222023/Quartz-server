@@ -1,14 +1,15 @@
 import firebaseUtil = require('../../components/firebaseUtil/firebaseUtil.service');
 import lzString = require('../../components/encoding/lzString');
+import allpayUtil = require('../../components/payments/allpayUtil');
+import planService = require('../../components/plans/plan.service');
 import * as _ from 'lodash';
 
-let Allpay = require('allpay');
 
 let initPlanAllpay = (config: any) => {
   let genChkOpt = {
       'specId': 'plan_allpay_gen_check_mac',
       'numWorkers': config.numWorkers || 10,
-      'sanitize': false,
+      // 'sanitize': false,
       'suppressStack': config.suppressStack || true
     },
     // tempOrderOpt = {
@@ -21,23 +22,25 @@ let initPlanAllpay = (config: any) => {
 
   //gen_check_mac
   firebaseUtil.queue(queueRef, genChkOpt, (data: any, progress: any, resolve: any, reject: any) => {
-    firebaseUtil.ref('plans?type=config/payment/allpay').once('value', function (paymentParamSnap: any) {
-      let paymentParams = paymentParamSnap.val() || {},
-        publicParams = lzString.decompress(paymentParams.public) || {},
-        privateParams = lzString.decompress(paymentParams.private) || {};
-      let allpayParams =  _.extend({}, publicParams, data.payment.allpay);
-
-      let allpay = new Allpay({
-        // debug: config.ALLPAY.DEBUG,
-        merchantID: publicParams.MerchantID,
-        hashKey: privateParams.HashKey,
-        hashIV: privateParams.HashIV
-      });
-
-      allpayParams.CheckMacValue = allpay.genCheckMacValue(allpayParams);
+    let promises = [
+      allpayUtil.getAllpay('plans?type=config/payment/allpay'),
+      planService.change(data.siteName, data.plan.changeTo)
+    ];
+    Promise.all(promises).then((res:any) => {
+      let allpay: any = res[0];
+      let allpayParams = _.extend({}, allpay.publicParams, data.payment.allpay);
+      let total:number = Math.round(res[1].payment.total);
       let tempRef = firebaseUtil.ref('plans?type=temp').child(data.id);
-      data.payment.allpay=allpayParams;
 
+      allpayParams.TotalAmount = total;
+      allpayParams.CheckMacValue = allpay.genCheckMacValue(allpayParams);
+
+      // data.payment.allpay = allpayParams;
+      data.payment.total = total;
+      _.extend(data.plan, res[1].plan);
+      // _.extend(data.payment, res[1].payment);
+
+      delete data.payment.allpay;
       Promise.all([
         queueRef.child('tasks/' + data.id + '/payment/allpay').update(allpayParams),
         tempRef.update(data)
