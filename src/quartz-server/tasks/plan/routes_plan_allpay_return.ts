@@ -32,12 +32,13 @@ function updateOrder(oid: string, paymentData: any, esc: any) {
       //index(esc, 'plan_'+siteName, 'plan_bill', oid, orderData);
 
       // order.indexOrder();
-      let updateData = {
+      let updateData:any = {
         processTime: (new Date()).getTime(),
         siteName:siteName,
         pid: pid,
         startAt:planData.plan.startAt,
         endAt:planData.plan.endAt,
+        preChangeTo:null,
         //desc: getDesc(orderData),
         //totalAmount: getTotal(orderData),
         payment: {

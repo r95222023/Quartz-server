@@ -12,44 +12,37 @@ let initPlanAllpay = (config: any) => {
       // 'sanitize': false,
       'suppressStack': config.suppressStack || true
     },
-    // tempOrderOpt = {
-    //   'specId': 'allpay_reg_temp_order',
-    //   'numWorkers': config.numWorkers || 10,
-    //   'sanitize': false,
-    //   'suppressStack': config.suppressStack || true
-    // },
     queueRef = firebaseUtil.ref('queue');
 
-  //gen_check_mac
   firebaseUtil.queue(queueRef, genChkOpt, (data: any, progress: any, resolve: any, reject: any) => {
-    let promises = [
-      allpayUtil.getAllpay('plans?type=config/payment/allpay'),
-      planService.change(data.siteName, data.plan.changeTo)
-    ];
-    Promise.all(promises).then((res:any) => {
-      let allpay: any = res[0];
-      let allpayParams = _.extend({}, allpay.publicParams, data.payment.allpay);
-      let total:number = Math.round(res[1].payment.total);
-      let tempRef = firebaseUtil.ref('plans?type=temp').child(data.id);
+    planService.change(data.siteName, data.plan.changeTo).then((res:any)=>{
+      let total:number = Math.round(res.payment.total);
+      let params={
+        ReturnURL: "http://131.193.191.1/planAllpayReceive?sitename=" + data.siteName,
+        TotalAmount:total
+      };
+      //gen_allpay params
+      allpayUtil.getAllpay('plans?type=config/payment/allpay', _.extend(params, data.payment.allpay))
+        .then((allpay:any)=>{
+          let allpayParams = allpay.publicParams;
+          let tempRef = firebaseUtil.ref('plans?type=temp').child(data.id);
 
-      allpayParams.TotalAmount = total;
-      allpayParams.CheckMacValue = allpay.genCheckMacValue(allpayParams);
+          // data.payment.allpay = allpayParams;
+          data.payment.total = total;
+          _.extend(data.plan, res.plan);
+          // _.extend(data.payment, res[1].payment);
 
-      // data.payment.allpay = allpayParams;
-      data.payment.total = total;
-      _.extend(data.plan, res[1].plan);
-      // _.extend(data.payment, res[1].payment);
-
-      delete data.payment.allpay;
-      Promise.all([
-        queueRef.child('tasks/' + data.id + '/payment/allpay').update(allpayParams),
-        tempRef.update(data)
-      ]).then(function () {
-        resolve();
-      }).catch(reject);
-      setTimeout(function () { //delete temp file after 15 mins
-        tempRef.set(null);
-      }, 900000);
+          delete data.payment.allpay;
+          Promise.all([
+            queueRef.child('tasks/' + data.id + '/payment/allpay').update(allpayParams),
+            tempRef.update(data)
+          ]).then(function () {
+            resolve();
+          }).catch(reject);
+          setTimeout(function () { //delete temp file after 15 mins
+            tempRef.set(null);
+          }, 900000);
+        })
     });
   });
 };

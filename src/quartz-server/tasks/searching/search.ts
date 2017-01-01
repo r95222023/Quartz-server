@@ -1,8 +1,9 @@
 import fbUtil = require('../../components/firebaseUtil/firebaseUtil.service');
 import util = require('../../components/utils/util');
 import lzString = require('../../components/encoding/lzString');
-import emitter = require('../../components/emitter/emitter');
+// import emitter = require('../../components/emitter/emitter');
 import errorHandler = require('../../components/errorHandler/errorHandler.service');
+import queryBuilder = require('../../components/elasticsearchClient/queryBuilder');
 
 import * as _ from 'lodash';
 
@@ -29,51 +30,41 @@ class SearchQueue {
     this.cleanupInterval = _options.cleanupInterval || 10000;
     this.cacheRootRef = typeof _options.cacheRefUrl === 'string' ? fbUtil.ref(_options.cacheRefUrl) : fbUtil.ref('query-cache');
     this._process();
-    this._resetCache();
   }
 
-  _asertValidSearch(props: any) {
-    let res = true,
-      _props = props || {};
-
-    if (typeof _props.indexType === 'string') {
-      let arr = _props.indexType.split(':');
-      _props.index = arr[0];
-      _props.type = arr[1];
-    }
-
-    if (!_props.index || !_props.type) {
-
+  _asertValidSearch(searchData: any) {
+    let res = true;
+    if (!searchData.siteName || !searchData.type) {
       res = false;
-      throw 'search request must be a valid object with index and type'
+      throw 'search request must be a valid object with siteName and type'
     }
     return res;
   }
 
   _onSearchComplete(data: any, error: any, response: any, requestRef: any, responseRef: any, resolve: any, reject: any) {
+    console.log(response);
     if (error) {
       errorHandler(error,{code:'ELASTICSEARCH_SEARCH_ERROR'}, reject);
     } else {
       let _response = {
         // request: data,
         compressed: lzString.compress({result: response.hits}),
-        editTime: (new Date()).getTime(),
+        editTime: (new Date()).getTime()/*,
         usage: {
           // created: fbUtil.ServerValue.TIMESTAMP,
           times: 1
-        }
+        }*/
       };
       responseRef.update(_response, (error: any)=> {
         if (error) {
           errorHandler(error,{code:'FIREBASE_DATABASE_UPDATE_ERROR'}, reject);
         }
-        if (!data.cache) responseRef.onDisconnect().remove();
+        // if (!data.cache) responseRef.onDisconnect().remove();
         requestRef.onDisconnect().remove();
         setTimeout(()=> {
-          if (!data.cache) {
-            responseRef.onDisconnect().cancel();
-            responseRef.remove();
-          }
+          // if (!data.cache) {
+          //   responseRef.remove();
+          // }
           requestRef.onDisconnect().cancel();
           resolve();
         }, this.cleanupInterval)
@@ -87,40 +78,28 @@ class SearchQueue {
       specsRef: this.specsRef
     }, this.options, (data: any, progress: any, resolve: any, reject: any)=> {
       if (this._asertValidSearch(data)) {
-
         let taskRef = this.requestRootRef,
           id = data['_id'],
-          index = data['indexType'].split(':')[0],
-          type = data['indexType'].split(':')[1],
+          siteName = data.siteName,
+          type = data.type,
           requestRef = taskRef.child(id),
-          responseRef = data.responseUrl ? fbUtil.ref(data.responseUrl) : (data.cache===true? this.cacheRootRef.child(index+type).child(id):this.responseRootRef.child(id));
-        data.body = data.body || {
-            "query": {
-              "match_all": {}
-            }
-          };
-        let rectifiedData = this._rectifyData(data, {
-          arrayLimit: data.size,
-          keyFilter: function (key: string) {
-            return _.isString(key) ? key.replace('_dot_', '.') : key
-          }
-        });
-        this.esc.search(rectifiedData, (error: any, response: any)=> {
+          responseRef = this.cacheRootRef.child(siteName+type).child(id);
+        this.esc.search(queryBuilder.buildQuery(data), (error: any, response: any)=> {
           this._onSearchComplete(data, error, response, requestRef, responseRef, resolve, reject)
         });
       }
     });
   }
 
-  _resetCache() {
-    let self = this;
-
-    function reset(opt: any) {
-      if ((typeof opt.index === 'string') && (typeof opt.type === 'string')) self.cacheRootRef.child(opt.index + opt.type).remove();
-    }
-
-    emitter.on('index_changed', util.debounce(reset, 10000));
-  }
+  // _resetCache() {
+  //   let self = this;
+  //
+  //   function reset(opt: any) {
+  //     if ((typeof opt.index === 'string') && (typeof opt.type === 'string')) self.cacheRootRef.child(opt.index + opt.type).remove();
+  //   }
+  //
+  //   emitter.on('index_changed', util.debounce(reset, 10000));
+  // }
 
   _isJson(str: string) {
     try {

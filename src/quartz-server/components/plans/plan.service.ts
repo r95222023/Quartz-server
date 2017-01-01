@@ -53,7 +53,7 @@ function changePlan(siteName: string, changeTo: any) {
             type: 'upgrade',
           },
           payment:{
-            total: currentPlan.price - refund
+            total: toPlan.price - refund
           }
         }
       } else {
