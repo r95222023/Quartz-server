@@ -5,7 +5,7 @@ import allpayUtil = require('../../components/payments/allpayUtil');
 import * as _ from 'lodash';
 
 
-let initOrderAllpay = (config: any) => {
+let initOrderAllpay = (esc:any, config: any) => {
   let genChkOpt = {
       'specId': 'allpay_gen_check_mac',
       'numWorkers': config.numWorkers || 10,
@@ -35,6 +35,29 @@ let initOrderAllpay = (config: any) => {
             stage: allpay.stage
           });
         }).then(resolve).catch(reject);
+        setTimeout(function () { //delete temp file after 15 mins
+          tempRef.set(null);
+        }, 900000);
+
+        let req ={
+          index:siteName,
+          type: 'order-temp',
+          id: id,
+          body:order.orderData
+        };
+        esc.index(req, (error: any, response: any) => {
+          setTimeout(function () { //delete temp file after 15 mins
+            delete req.body;
+            esc.delete(req);
+          }, 900000);
+          if (error) {
+            console.error('failed to update the index: order-temp:'+siteName+':'+id, error);
+            // reject(error)
+          } else {
+            console.log('index updated', req.index, data.type, data.id);
+            resolve();
+          }
+        });
         // Promise.all([
         //   queueRef.child('tasks/' + id + '/payment').update({
         //     allpay: allpay.publicParams,
@@ -44,9 +67,6 @@ let initOrderAllpay = (config: any) => {
         // ]).then(function () {
         //   resolve();
         // }).catch(reject);
-        setTimeout(function () { //delete temp file after 15 mins
-          tempRef.set(null);
-        }, 900000);
       });
     }).catch(reject);
   });
@@ -63,8 +83,8 @@ let initOrderAllpay = (config: any) => {
   // })
 };
 
-export = (config: any) => {
+export = (esc:any, config: any) => {
   let _config = config || {};
 
-  initOrderAllpay(_config);
+  initOrderAllpay(esc, _config);
 };

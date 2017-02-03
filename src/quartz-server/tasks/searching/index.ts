@@ -35,6 +35,20 @@ let mappings: any = {
         type: 'integer'
       }
     }
+  },
+  order: {
+    properties: {
+      id: {
+        type: 'keyword'
+      }
+    }
+  },
+  'order-temp': {
+    properties: {
+      id: {
+        type: 'keyword'
+      }
+    }
   }
 };
 
@@ -50,7 +64,7 @@ let initIndex = (esc: any, config: any) => {
 
   function putMapping(siteName: string) {
     //products or articles
-    ['article', 'product'].forEach((type) => {
+    ['article', 'product', 'order', 'order-temp'].forEach((type) => {
       esc.indices.putMapping({
         index: siteName,
         type: type,
@@ -74,7 +88,7 @@ let initIndex = (esc: any, config: any) => {
   function deleteIndex(siteName: string, resolve: any) {
     esc.indices.delete({
       index: siteName
-    },resolve);
+    }, resolve);
   }
 
   let queue = firebaseUtil.queue(rootRef, options, (data: any, progress: any, resolve: any, reject: any) => {
@@ -91,12 +105,13 @@ let initIndex = (esc: any, config: any) => {
     function indexChanged() {
       resetCache(data.siteName + data.type);
     }
+
     switch (data.task) {
       case 'create':
-        createIndex(data.siteName,resolve);
+        createIndex(data.siteName, resolve);
         break;
       case 'delete':
-        deleteIndex(data.siteName,resolve);
+        deleteIndex(data.siteName, resolve);
         break;
       case 'add':
         esc.index(req, (error: any, response: any) => {

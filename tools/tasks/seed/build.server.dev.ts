@@ -2,10 +2,10 @@ import * as gulp from 'gulp';
 import * as gulpLoadPlugins from 'gulp-load-plugins';
 import * as merge from 'merge-stream';
 import * as util from 'gulp-util';
-import { join } from 'path';
+import {join} from 'path';
 
 import Config from '../../config';
-import { makeTsProject, templateLocals } from '../../utils';
+import {makeTsProject, templateLocals} from '../../utils';
 
 const plugins = <any>gulpLoadPlugins();
 
@@ -26,6 +26,13 @@ export = () => {
     '!' + join(Config.APP_SERVER_SRC, '**/*.spec.ts'),
     '!' + join(Config.APP_SERVER_SRC, '**/*.e2e-spec.ts')
   ];
+
+  //copy non-ts files to destiny directories
+  let fileSrc = [
+    join(Config.APP_SERVER_SRC, '**'),
+    '!' + join(Config.APP_SERVER_SRC, '**/*.ts')
+  ];
+  gulp.src(fileSrc).pipe(gulp.dest(Config.APP_SERVER_DEST));
 
   let projectFiles = gulp.src(src);
   let result: any;

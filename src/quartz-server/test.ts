@@ -3,9 +3,17 @@ let app = require('./components/expressApp/expressApp.service');
 let esc = require('./components/elasticsearchClient/esc');
 let serverService = require('./components/server/servers.service');
 
-
-import analyticsUtil = require('./components/anlytics/analytics.service');
-// analyticsUtil.regOrder('template1',{'pd-001':{quantity:3, price:100}});
+//create test product analytics
+// import analyticsUtil = require('./components/anlytics/analytics.service');
+// for (let i = 1; i < 10; i++) {
+//   let q = Math.floor(Math.random() * 100);
+//   let price = Math.floor(Math.random() * 1000);
+//   let items:any = {};
+//   items['pd-00'+i]={quantity:q, price:price};
+//   analyticsUtil.regProduct('template1',items);
+//
+// }
+//create test order
 // analyticsUtil.regOrder('template1',{totalAmount:30});
 // import * as serverService from './components/server/servers.service';
 // import * as esc from './components/elasticsearchClient/esc';

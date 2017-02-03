@@ -3,40 +3,66 @@ let firebaseUtil = require('../../components/firebaseUtil/firebaseUtil.service')
 import allpayUtil = require('../../components/payments/allpayUtil');
 import analyticsUtil = require('../../components/anlytics/analytics.service');
 
-function index(esc: any, index: string, type: string, id: string, data: any) {
-  let req = {
-    index: index,
-    type: type,
-    id: id,
-    body: data
-  };
-  esc.index(req, (error: any, response: any) => {
-    if (error) {
-      console.error('failed to index', error);
-      // errorHandler(error, {code: 'ELASTICSEARCH_INDEX_ADD_ERROR'});
-      // reject(error)
-    } else {
-      console.log('index added', id);
-    }
-  });
-}
+// function index(esc: any, index: string, type: string, id: string, data: any) {
+//   let req = {
+//     index: index,
+//     type: type,
+//     id: id,
+//     body: data
+//   };
+//   esc.index(req, (error: any, response: any) => {
+//     if (error) {
+//       console.error('failed to index', error);
+//       // errorHandler(error, {code: 'ELASTICSEARCH_INDEX_ADD_ERROR'});
+//       // reject(error)
+//     } else {
+//       console.log('index added', id);
+//     }
+//   });
+// }
 
 function updateOrder(siteName:string, oid: string, paymentData: any, esc: any) {
-  return firebaseUtil.ref('site-temps?type=order-allpay&siteName=' + siteName).child(oid).once('value').then((snap: any)=>{
-    let orderData = snap.val();
-    //index(esc, 'plan_'+siteName, 'plan_bill', oid, orderData);
-    // order.indexOrder();
 
+  let escreq ={
+    index:siteName,
+    type: 'order-temp',
+    id: oid
+  };
+  return esc.get(escreq).then((res:any)=>{
+    let orderData = res['_source'];
+    let indexreq = {
+      index: siteName,
+      type: 'order',
+      id: oid,
+      body:orderData
+    };
     return Promise.all([
       // firebaseUtil.ref('users?type=detail').child('sites/' + siteName + '/pid').update(pid),
-      firebaseUtil.ref('site-users?type=detail&siteName='+siteName).child(orderData.buyer.id).child('orders').push(orderData),
-      firebaseUtil.ref('site-orders?type=detail'+siteName).update(orderData),
+      // firebaseUtil.ref('site-users?type=detail&siteName='+siteName).child(orderData.buyer.id).child('orders').push(orderData),
+      // firebaseUtil.ref('site-orders?type=detail'+siteName).update(orderData),
+      esc.index(indexreq),
       analyticsUtil.regOrder(siteName, orderData),
       analyticsUtil.regProduct(siteName, orderData.items),
     ]).then(() => {
-      return snap.ref.set(null);
+      return esc.delete(escreq);
     });
   });
+  //
+  // return firebaseUtil.ref('site-temps?type=order-allpay&siteName=' + siteName).child(oid).once('value').then((snap: any)=>{
+  //   let orderData = snap.val();
+  //   //index(esc, 'plan_'+siteName, 'plan_bill', oid, orderData);
+  //   // order.indexOrder();
+  //
+  //   return Promise.all([
+  //     // firebaseUtil.ref('users?type=detail').child('sites/' + siteName + '/pid').update(pid),
+  //     firebaseUtil.ref('site-users?type=detail&siteName='+siteName).child(orderData.buyer.id).child('orders').push(orderData),
+  //     firebaseUtil.ref('site-orders?type=detail'+siteName).update(orderData),
+  //     analyticsUtil.regOrder(siteName, orderData),
+  //     analyticsUtil.regProduct(siteName, orderData.items),
+  //   ]).then(() => {
+  //     return snap.ref.set(null);
+  //   });
+  // });
 }
 
 function init(esc: any) {
